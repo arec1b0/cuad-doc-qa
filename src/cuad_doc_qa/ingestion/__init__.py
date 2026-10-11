@@ -9,6 +9,7 @@ from cuad_doc_qa.ingestion.cuad import (
     load_annotations,
     load_documents,
     load_official_split,
+    load_questions,
 )
 
 __all__ = [
@@ -20,4 +21,5 @@ __all__ = [
     "load_annotations",
     "load_documents",
     "load_official_split",
+    "load_questions",
 ]

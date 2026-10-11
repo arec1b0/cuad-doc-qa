@@ -1,4 +1,4 @@
-"""load_annotations and load_official_split: CUAD labels and split membership."""
+"""load_annotations, load_questions and load_official_split: CUAD labels, questions, split."""
 
 from collections.abc import Callable
 from pathlib import Path
@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from cuad_doc_qa.domain import Annotation
-from cuad_doc_qa.ingestion import load_annotations, load_official_split
+from cuad_doc_qa.ingestion import load_annotations, load_official_split, load_questions
 
 ArchiveFactory = Callable[..., Path]
 
@@ -14,17 +14,19 @@ DOC = "A-EX-10-LICENSE AGREEMENT"
 CONTEXT = "Governing law: Delaware. Term: five years."
 
 
-def _qa(category: str, *answers: tuple[str, int], impossible: bool | None = None) -> dict:
+def _qa(
+    category: str, *answers: tuple[str, int], impossible: bool | None = None, doc: str = DOC
+) -> dict:
     return {
-        "id": f"{DOC}__{category}",
+        "id": f"{doc}__{category}",
         "question": f'Highlight the parts (if any) of this contract related to "{category}"',
         "answers": [{"text": text, "answer_start": start} for text, start in answers],
         "is_impossible": not answers if impossible is None else impossible,
     }
 
 
-def _entry(*qas: dict) -> dict:
-    return {"title": DOC, "paragraphs": [{"context": CONTEXT, "qas": list(qas)}]}
+def _entry(*qas: dict, doc: str = DOC) -> dict:
+    return {"title": doc, "paragraphs": [{"context": CONTEXT, "qas": list(qas)}]}
 
 
 def test_parses_present_and_absent_clauses(make_cuad_archive: ArchiveFactory) -> None:
@@ -73,3 +75,27 @@ def test_official_split_lists_train_and_test_titles(make_cuad_archive: ArchiveFa
         "train": frozenset({"A", "B"}),
         "test": frozenset({"C"}),
     }
+
+
+def test_questions_map_each_category_to_its_wording(make_cuad_archive: ArchiveFactory) -> None:
+    second = _entry(_qa("Term", doc="B-EX-10"), doc="B-EX-10")
+    archive = make_cuad_archive([_entry(_qa("Term"), _qa("Non-Compete")), second])
+
+    assert load_questions(archive) == {
+        "Term": 'Highlight the parts (if any) of this contract related to "Term"',
+        "Non-Compete": 'Highlight the parts (if any) of this contract related to "Non-Compete"',
+    }
+
+
+def test_questions_reject_wording_that_differs_between_contracts(
+    make_cuad_archive: ArchiveFactory,
+) -> None:
+    second = _entry({**_qa("Term", doc="B-EX-10"), "question": "Reworded"}, doc="B-EX-10")
+
+    with pytest.raises(ValueError, match="wording differs"):
+        load_questions(make_cuad_archive([_entry(_qa("Term")), second]))
+
+
+def test_questions_reject_foreign_question_ids(make_cuad_archive: ArchiveFactory) -> None:
+    with pytest.raises(ValueError, match="question id is not"):
+        load_questions(make_cuad_archive([_entry({**_qa("Term"), "id": "OTHER__Term"})]))

@@ -109,6 +109,23 @@ def load_annotations(archive: Path) -> list[Annotation]:
     return annotations
 
 
+def load_questions(archive: Path) -> dict[str, str]:
+    """CUAD's question text for each clause category.
+
+    Raises ValueError if one category is asked with different wording in different contracts.
+    """
+    questions: dict[str, str] = {}
+    for doc_id, paragraph in _entries(archive):
+        prefix = f"{doc_id}__"
+        for qa in paragraph["qas"]:
+            if not qa["id"].startswith(prefix):
+                raise ValueError(f"{qa['id']!r}: question id is not '<title>__<category>'")
+            category = qa["id"][len(prefix) :]
+            if questions.setdefault(category, qa["question"]) != qa["question"]:
+                raise ValueError(f"{category!r}: question wording differs between contracts")
+    return questions
+
+
 def load_official_split(archive: Path) -> dict[str, frozenset[str]]:
     """Contract ids of CUAD's own split, keyed "train" and "test"."""
     with zipfile.ZipFile(archive) as zf:

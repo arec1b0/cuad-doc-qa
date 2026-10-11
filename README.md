@@ -28,6 +28,17 @@ Evaluation splits are frozen in `data/eval/splits/`, one contract id per line:
 Each contract has 41 questions, one per clause category. A chunk is relevant to a question if it
 overlaps one of the expert-annotated spans; a question with no spans is unanswerable.
 
+## Reports
+
+Retrieval reports live in `reports/` and are byte-reproducible: regenerating one must leave
+`git diff` empty. Each question is searched only within its own contract, using CUAD's question
+text verbatim. Metrics cover answerable questions; unanswerable ones are counted, not scored.
+
+```powershell
+uv run python -c "from pathlib import Path; from cuad_doc_qa.evaluation.runner import run_bm25_baseline; run_bm25_baseline(Path('data/eval/splits/test.txt'), Path('reports/bm25-baseline-test.json'))"
+uv run python -c "from pathlib import Path; from cuad_doc_qa.evaluation.runner import run_bm25_baseline; run_bm25_baseline(Path('data/eval/splits/dev.txt'), Path('reports/bm25-baseline-dev.json'))"
+```
+
 ## Checks
 
 ```powershell
