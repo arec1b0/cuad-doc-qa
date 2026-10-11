@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Virtual environment
+.venv/
+
+# Tool caches
+.pytest_cache/
+.ruff_cache/
+
+# Data and generated artifacts (reproducible from source)
+data/raw/
+data/processed/
+artifacts/
+
+# OS and editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
