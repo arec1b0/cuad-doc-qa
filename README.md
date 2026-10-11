@@ -35,9 +35,13 @@ Retrieval reports live in `reports/` and are byte-reproducible: regenerating one
 text verbatim. Metrics cover answerable questions; unanswerable ones are counted, not scored.
 
 ```powershell
-uv run python -c "from pathlib import Path; from cuad_doc_qa.evaluation.runner import run_bm25_baseline; run_bm25_baseline(Path('data/eval/splits/test.txt'), Path('reports/bm25-baseline-test.json'))"
-uv run python -c "from pathlib import Path; from cuad_doc_qa.evaluation.runner import run_bm25_baseline; run_bm25_baseline(Path('data/eval/splits/dev.txt'), Path('reports/bm25-baseline-dev.json'))"
+uv run cuad-qa download
+uv run cuad-qa evaluate --split test
+uv run cuad-qa evaluate --split dev
 ```
+
+Run commands from the repository root. Exit codes: 0 success, 1 handled failure (bad data,
+checksum, network, missing FTS5), 2 invalid usage. `--log-level DEBUG` adds tracebacks.
 
 ## Checks
 
