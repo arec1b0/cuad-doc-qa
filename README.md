@@ -12,10 +12,25 @@ Document Q&A with verifiable citations over the CUAD contract corpus.
 uv sync --locked
 ```
 
+## Data
+
+[CUAD v1](https://github.com/TheAtticusProject/cuad): 510 commercial contracts with expert clause
+annotations, licensed CC BY 4.0. The archive is pinned to commit
+`67faa0e6023b04fcaae6cc09497ab00e5d63a2a2` and SHA-256
+`f8161d18bea4e9c05e78fa6dda61c19c846fb8087ea969c172753bc2f45b999a`. It is downloaded to
+`data/raw/` and never modified.
+
 ## Checks
 
 ```powershell
 uv run ruff check .
 uv run ruff format --check .
 uv run pytest
+```
+
+Tests that need internet access are deselected by default. This one downloads CUAD (18 MB) into
+`data/raw/` on first run:
+
+```powershell
+uv run pytest -m network
 ```

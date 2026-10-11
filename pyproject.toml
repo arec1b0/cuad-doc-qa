@@ -19,7 +19,15 @@ select = ["E", "F", "W", "I", "B", "UP"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = ["-ra", "--strict-markers", "--strict-config", "--import-mode=importlib"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "--import-mode=importlib",
+    "-m",
+    "not network",
+]
+markers = ["network: needs internet access; deselected by default, select with -m network"]
 
 [dependency-groups]
 dev = [
