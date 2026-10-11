@@ -1,12 +1,16 @@
-"""Shared test assertions."""
+"""Shared test fixtures."""
 
+import json
+import zipfile
 from collections.abc import Callable
+from pathlib import Path
 
 import pytest
 
 from cuad_doc_qa.domain import Chunk, Document
 
 PartitionCheck = Callable[[Document, list[Chunk], int], None]
+ArchiveFactory = Callable[..., Path]
 
 
 @pytest.fixture
@@ -26,3 +30,19 @@ def assert_partition() -> PartitionCheck:
         assert "".join("".join(c.text.split()) for c in chunks) == "".join(document.text.split())
 
     return check
+
+
+@pytest.fixture
+def make_cuad_archive(tmp_path: Path) -> ArchiveFactory:
+    """Build a zip with the CUAD v1 member layout: full set plus official train/test titles."""
+
+    def make(entries: list[dict], train: tuple[str, ...] = (), test: tuple[str, ...] = ()) -> Path:
+        path = tmp_path / "cuad.zip"
+        with zipfile.ZipFile(path, "w") as zf:
+            zf.writestr("CUADv1.json", json.dumps({"version": "aok_v1.0", "data": entries}))
+            for member, titles in (("train_separate_questions.json", train), ("test.json", test)):
+                data = [{"title": title, "paragraphs": []} for title in titles]
+                zf.writestr(member, json.dumps({"version": "aok_v1.0", "data": data}))
+        return path
+
+    return make

@@ -6,7 +6,9 @@ from cuad_doc_qa.ingestion.cuad import (
     CUAD_URL,
     ChecksumMismatchError,
     download,
+    load_annotations,
     load_documents,
+    load_official_split,
 )
 
 __all__ = [
@@ -15,5 +17,7 @@ __all__ = [
     "CUAD_URL",
     "ChecksumMismatchError",
     "download",
+    "load_annotations",
     "load_documents",
+    "load_official_split",
 ]

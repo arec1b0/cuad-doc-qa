@@ -1,4 +1,4 @@
-"""CUAD v1 source: pinned, checksum-verified download and parsing into documents."""
+"""CUAD v1 source: pinned, checksum-verified download and parsing of contracts and labels."""
 
 import hashlib
 import json
@@ -7,9 +7,11 @@ import os
 import tempfile
 import urllib.request
 import zipfile
+from collections.abc import Iterator
 from pathlib import Path
+from typing import Any
 
-from cuad_doc_qa.domain import Document
+from cuad_doc_qa.domain import Annotation, Document
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +20,8 @@ CUAD_URL = f"https://raw.githubusercontent.com/TheAtticusProject/cuad/{CUAD_COMM
 CUAD_SHA256 = "f8161d18bea4e9c05e78fa6dda61c19c846fb8087ea969c172753bc2f45b999a"
 ARCHIVE_NAME = "cuad_v1_data.zip"
 
-_MEMBER = "CUADv1.json"
+_FULL_MEMBER = "CUADv1.json"
+_SPLIT_MEMBERS = {"train": "train_separate_questions.json", "test": "test.json"}
 _CHUNK_BYTES = 1 << 20
 _TIMEOUT_SECONDS = 60
 
@@ -69,10 +72,56 @@ def load_documents(archive: Path) -> list[Document]:
 
     Raises ValueError if the archive breaks a CUAD v1 layout assumption this parser relies on.
     """
-    with zipfile.ZipFile(archive) as zf:
-        payload = json.loads(zf.read(_MEMBER))
+    documents = [
+        Document(doc_id=doc_id, text=paragraph["context"])
+        for doc_id, paragraph in _entries(archive)
+    ]
+    logger.info("Loaded %d documents from %s", len(documents), archive)
+    return documents
 
-    documents: list[Document] = []
+
+def load_annotations(archive: Path) -> list[Annotation]:
+    """Parse the gold spans of every (contract, category) pair, including absent clauses.
+
+    Raises ValueError if a question id, an answer offset or the is_impossible flag is inconsistent.
+    """
+    annotations: list[Annotation] = []
+    for doc_id, paragraph in _entries(archive):
+        context = paragraph["context"]
+        prefix = f"{doc_id}__"
+        for qa in paragraph["qas"]:
+            qa_id = qa["id"]
+            if not qa_id.startswith(prefix) or len(qa_id) == len(prefix):
+                raise ValueError(f"{qa_id!r}: question id is not '<title>__<category>'")
+            spans: set[tuple[int, int]] = set()
+            for answer in qa["answers"]:
+                start, text = answer["answer_start"], answer["text"]
+                if not text or context[start : start + len(text)] != text:
+                    raise ValueError(f"{qa_id!r}: answer does not match the text at offset {start}")
+                spans.add((start, start + len(text)))
+            if qa["is_impossible"] != (not spans):
+                raise ValueError(f"{qa_id!r}: is_impossible disagrees with the answers")
+            annotations.append(
+                Annotation(doc_id=doc_id, category=qa_id[len(prefix) :], spans=tuple(sorted(spans)))
+            )
+
+    logger.info("Loaded %d annotations from %s", len(annotations), archive)
+    return annotations
+
+
+def load_official_split(archive: Path) -> dict[str, frozenset[str]]:
+    """Contract ids of CUAD's own split, keyed "train" and "test"."""
+    with zipfile.ZipFile(archive) as zf:
+        return {
+            name: frozenset(entry["title"] for entry in json.loads(zf.read(member))["data"])
+            for name, member in _SPLIT_MEMBERS.items()
+        }
+
+
+def _entries(archive: Path) -> Iterator[tuple[str, dict[str, Any]]]:
+    with zipfile.ZipFile(archive) as zf:
+        payload = json.loads(zf.read(_FULL_MEMBER))
+
     seen: set[str] = set()
     for entry in payload["data"]:
         doc_id = entry["title"]
@@ -82,10 +131,7 @@ def load_documents(archive: Path) -> list[Document]:
         if doc_id in seen:
             raise ValueError(f"{doc_id!r}: duplicate document id")
         seen.add(doc_id)
-        documents.append(Document(doc_id=doc_id, text=paragraphs[0]["context"]))
-
-    logger.info("Loaded %d documents from %s", len(documents), archive)
-    return documents
+        yield doc_id, paragraphs[0]
 
 
 def _sha256_of(path: Path) -> str:

@@ -20,6 +20,14 @@ annotations, licensed CC BY 4.0. The archive is pinned to commit
 `f8161d18bea4e9c05e78fa6dda61c19c846fb8087ea969c172753bc2f45b999a`. It is downloaded to
 `data/raw/` and never modified.
 
+Evaluation splits are frozen in `data/eval/splits/`, one contract id per line:
+
+- `dev.txt`: CUAD's official train split (408 contracts), used for tuning.
+- `test.txt`: CUAD's official test split (102 contracts), used only for reported results.
+
+Each contract has 41 questions, one per clause category. A chunk is relevant to a question if it
+overlaps one of the expert-annotated spans; a question with no spans is unanswerable.
+
 ## Checks
 
 ```powershell
