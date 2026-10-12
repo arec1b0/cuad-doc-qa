@@ -1,17 +1,15 @@
 """Score a retriever against relevance judgments, overall and per clause category."""
 
 from collections import defaultdict
-from collections.abc import Callable, Iterable, Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from statistics import fmean
 
-from cuad_doc_qa.domain import SearchHit
+from cuad_doc_qa.domain import Search
 from cuad_doc_qa.evaluation.metrics import ndcg_at_k, recall_at_k, reciprocal_rank
 from cuad_doc_qa.evaluation.qrels import Judgment
 
 K = 10
-
-Search = Callable[[str, int, str | None], list[SearchHit]]
 
 
 @dataclass(frozen=True, slots=True)
