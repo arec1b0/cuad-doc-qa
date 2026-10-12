@@ -31,9 +31,12 @@ addopts = [
     "--strict-config",
     "--import-mode=importlib",
     "-m",
-    "not network",
+    "not network and not ollama",
 ]
-markers = ["network: needs internet access; deselected by default, select with -m network"]
+markers = [
+    "network: needs internet access; deselected by default, select with -m network",
+    "ollama: needs a local Ollama server and CUAD_QA_OLLAMA_MODEL; select with -m ollama",
+]
 
 [dependency-groups]
 dev = [

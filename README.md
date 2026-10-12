@@ -51,9 +51,17 @@ uv run ruff format --check .
 uv run pytest
 ```
 
-Tests that need internet access are deselected by default. This one downloads CUAD (18 MB) into
-`data/raw/` on first run:
+Tests that need internet access are deselected by default. They download CUAD (18 MB) into
+`data/raw/` and the ONNX models into `artifacts/models/` on first run:
 
 ```powershell
 uv run pytest -m network
+```
+
+Tests against a local [Ollama](https://ollama.com) server are deselected too. They need the
+server running and the model pulled:
+
+```powershell
+ollama pull qwen2.5:7b
+$env:CUAD_QA_OLLAMA_MODEL = "qwen2.5:7b"; uv run pytest -m ollama
 ```
