@@ -43,6 +43,17 @@ uv run cuad-qa evaluate --split dev
 Run commands from the repository root. Exit codes: 0 success, 1 handled failure (bad data,
 checksum, network, missing FTS5), 2 invalid usage. `--log-level DEBUG` adds tracebacks.
 
+## Abstention gate
+
+`configs/bm25-gate.json` holds per-category BM25 score thresholds, calibrated on dev to keep 95%
+of answerable questions. Questions below their category's threshold are withheld before any LLM
+call. Regenerating it scores all 16,728 dev questions (about 15 minutes) and must leave
+`git diff` empty:
+
+```powershell
+uv run python -c "from pathlib import Path; from cuad_doc_qa.abstention import calibrate_bm25_gate; calibrate_bm25_gate(Path('data/eval/splits/dev.txt'), Path('configs/bm25-gate.json'))"
+```
+
 ## Checks
 
 ```powershell
