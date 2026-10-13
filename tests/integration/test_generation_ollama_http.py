@@ -25,6 +25,9 @@ class FakeOllama:
             "prompt_eval_count": 12,
             "eval_count": 5,
         }
+        self.tags: dict[str, Any] = {
+            "models": [{"name": "qwen2.5:7b", "model": "qwen2.5:7b", "digest": "845dbda0ea48"}]
+        }
 
 
 @pytest.fixture
@@ -41,6 +44,14 @@ def ollama() -> Iterator[tuple[FakeOllama, str]]:
                 else json.dumps({"error": "model 'missing:7b' not found"})
             ).encode()
             self.send_response(state.status)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def do_GET(self) -> None:  # noqa: N802
+            body = json.dumps(state.tags).encode()
+            self.send_response(200 if self.path == "/api/tags" else 404)
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(body)))
             self.end_headers()
@@ -96,3 +107,24 @@ def test_unreachable_server_is_reported() -> None:
         OllamaChat("qwen2.5:7b", base_url="http://127.0.0.1:9", timeout=5).complete(
             MESSAGES, SCHEMA
         )
+
+
+def test_digest_names_the_pulled_weights(ollama: tuple[FakeOllama, str]) -> None:
+    _, url = ollama
+
+    assert OllamaChat("qwen2.5:7b", base_url=url).digest() == "845dbda0ea48"
+    assert OllamaChat("missing:7b", base_url=url).digest() is None
+
+
+def test_options_are_the_pinned_decoding_settings() -> None:
+    assert OllamaChat("m", num_ctx=4096, seed=7).options == {
+        "temperature": 0,
+        "seed": 7,
+        "num_ctx": 4096,
+        "num_predict": 1024,
+    }
+
+
+def test_digest_reports_an_unreachable_server() -> None:
+    with pytest.raises(RuntimeError, match="not reachable at http://127.0.0.1:9"):
+        OllamaChat("m", base_url="http://127.0.0.1:9").digest()

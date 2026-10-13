@@ -8,11 +8,13 @@ network, missing FTS5, Ollama unreachable or invalid reply, reports not comparab
 import argparse
 import logging
 import os
+import re
 import sys
 from collections.abc import Sequence
 from pathlib import Path
 
 from cuad_doc_qa import __version__
+from cuad_doc_qa.evaluation.answers import run_answer_eval
 from cuad_doc_qa.evaluation.gate import DEFAULT_TOLERANCES, compare, load_report
 from cuad_doc_qa.evaluation.runner import (
     RETRIEVERS,
@@ -94,6 +96,23 @@ def _ask(args: argparse.Namespace) -> int:
         question = session.questions[args.category] if args.category else args.question
         result = session.pipeline.ask(question, doc_id, args.category)
     print(_render(result))
+    return 0
+
+
+def _evaluate_answers(args: argparse.Namespace) -> int:
+    chat = OllamaChat(args.model, base_url=args.ollama_url)
+    size = f"sample{args.sample}-seed{args.seed}" if args.sample else "all"
+    model = re.sub(r"[^A-Za-z0-9._-]+", "-", args.model)
+    out = args.out or REPORTS_DIR / "answers" / f"dev-{size}-{model}.json"
+    report = run_answer_eval(
+        chat, SPLITS_DIR / "dev.txt", out, args.sample, args.seed, args.k, args.gate, args.data_dir
+    )
+    metrics, questions = report["metrics"], report["questions"]
+    print(f"report: {out.as_posix()}")
+    print(
+        f"questions={questions['total']} answerable={questions['answerable']} "
+        + " ".join(f"{name}={value}" for name, value in metrics.items())
+    )
     return 0
 
 
@@ -184,15 +203,24 @@ def _parser() -> argparse.ArgumentParser:
         "--category", help="CUAD clause category: asks CUAD's question and applies the gate"
     )
     query.add_argument("--question", help="free-form question; the gate does not apply")
-    model = os.environ.get(MODEL_ENV)
-    ask_cmd.add_argument(
-        "--model", default=model, required=model is None, help=f"Ollama model (env {MODEL_ENV})"
-    )
-    ask_cmd.add_argument("--ollama-url", default=DEFAULT_BASE_URL)
-    ask_cmd.add_argument("--k", type=int, default=DEFAULT_K, help="chunks given to the model")
-    ask_cmd.add_argument("--gate", type=Path, default=DEFAULT_GATE)
-    ask_cmd.add_argument("--data-dir", type=Path, default=DATA_DIR)
+    _add_pipeline_args(ask_cmd)
     ask_cmd.set_defaults(handler=_ask)
+
+    answers_cmd = commands.add_parser(
+        "evaluate-answers",
+        help="run every question of a seeded dev sample through the full pipeline and score it",
+    )
+    answers_cmd.add_argument(
+        "--sample", type=int, default=10, help="dev contracts to sample; 0 uses all 408"
+    )
+    answers_cmd.add_argument("--seed", type=int, default=0)
+    answers_cmd.add_argument(
+        "--out",
+        type=Path,
+        help="report path (default: reports/answers/dev-sample<N>-seed<S>-<model>.json)",
+    )
+    _add_pipeline_args(answers_cmd)
+    answers_cmd.set_defaults(handler=_evaluate_answers)
 
     gate_cmd = commands.add_parser(
         "gate", help="fail (exit 3) when a candidate report regresses against a baseline"
@@ -208,3 +236,14 @@ def _parser() -> argparse.ArgumentParser:
     )
     gate_cmd.set_defaults(handler=_gate)
     return parser
+
+
+def _add_pipeline_args(command: argparse.ArgumentParser) -> None:
+    model = os.environ.get(MODEL_ENV)
+    command.add_argument(
+        "--model", default=model, required=model is None, help=f"Ollama model (env {MODEL_ENV})"
+    )
+    command.add_argument("--ollama-url", default=DEFAULT_BASE_URL)
+    command.add_argument("--k", type=int, default=DEFAULT_K, help="chunks given to the model")
+    command.add_argument("--gate", type=Path, default=DEFAULT_GATE)
+    command.add_argument("--data-dir", type=Path, default=DATA_DIR)

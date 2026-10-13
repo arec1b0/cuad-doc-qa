@@ -35,7 +35,8 @@ class OllamaChat:
     ) -> None:
         self.model = model
         self.num_ctx = num_ctx
-        self._url = base_url.rstrip("/") + "/api/chat"
+        self._base = base_url.rstrip("/")
+        self._url = self._base + "/api/chat"
         self._options = {
             "temperature": 0,
             "seed": seed,
@@ -43,6 +44,26 @@ class OllamaChat:
             "num_predict": num_predict,
         }
         self._timeout = timeout
+
+    @property
+    def options(self) -> dict[str, int]:
+        """Decoding options sent with every request."""
+        return dict(self._options)
+
+    def digest(self) -> str | None:
+        """Digest of the local model weights (GET /api/tags), or None if the model is not pulled.
+
+        Raises RuntimeError if Ollama is unreachable.
+        """
+        try:
+            with urllib.request.urlopen(self._base + "/api/tags", timeout=30) as response:
+                models = json.loads(response.read()).get("models", [])
+        except (urllib.error.URLError, TimeoutError) as error:
+            raise RuntimeError(f"Ollama is not reachable at {self._base}: {error}") from error
+        for entry in models:
+            if self.model in (entry.get("name"), entry.get("model")):
+                return entry.get("digest")
+        return None
 
     def complete(self, messages: list[dict[str, str]], schema: dict[str, Any]) -> str:
         """Raises RuntimeError if Ollama is unreachable, rejects the request or cuts the reply."""

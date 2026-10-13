@@ -83,6 +83,21 @@ uv run cuad-qa ask --contract LIMEENERGYCO --category "Governing Law"
 uv run cuad-qa ask --contract LIMEENERGYCO --question "Can the distributor sell competing products?"
 ```
 
+## Answer evaluation
+
+Runs all 41 CUAD questions of a seeded dev sample (default 10 contracts, 410 questions) through
+the full pipeline and scores answers against the expert spans: a shown answer is correct when
+one of its citations overlaps an expert span. The report records answer recall and precision,
+false answers on unanswerable questions, abstention by reason, citation precision and latency.
+Every scored question is appended to `<report>.questions.jsonl`, so an interrupted run picks up
+where it stopped; three errors in a row abort it.
+
+```powershell
+$env:CUAD_QA_OLLAMA_MODEL = "qwen2.5:7b"
+uv run cuad-qa evaluate-answers --sample 1
+uv run cuad-qa evaluate-answers
+```
+
 ## Checks
 
 ```powershell
