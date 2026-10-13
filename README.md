@@ -89,3 +89,16 @@ server running and the model pulled:
 ollama pull qwen2.5:7b
 $env:CUAD_QA_OLLAMA_MODEL = "qwen2.5:7b"; uv run pytest -m ollama
 ```
+
+## Regression gate
+
+`cuad-qa gate` compares a candidate report with a baseline on the same split and exits 3 when
+dev recall@10 drops by more than 0.02 (`--tolerance METRIC=VALUE` overrides, repeatable):
+
+```powershell
+uv run cuad-qa gate --baseline reports/bm25-baseline-dev.json --candidate artifacts/candidate-dev.json
+```
+
+CI (`.github/workflows/ci.yml`) runs lint and unit tests on Ubuntu and Windows. On Ubuntu it
+also runs the real-data tests, checks that the committed dev report is reproduced by the code,
+and gates that report against the one on the base branch. The test split is never used by CI.

@@ -1,7 +1,8 @@
 """`cuad-qa` command line: thin wrappers over the library, run from the repository root.
 
 Exit codes: 0 success (an abstention is a success), 1 handled failure (bad data, checksum,
-network, missing FTS5, Ollama unreachable or invalid reply), 2 invalid usage (argparse).
+network, missing FTS5, Ollama unreachable or invalid reply, reports not comparable),
+2 invalid usage (argparse), 3 retrieval regression found by `gate`.
 """
 
 import argparse
@@ -12,6 +13,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from cuad_doc_qa import __version__
+from cuad_doc_qa.evaluation.gate import DEFAULT_TOLERANCES, compare, load_report
 from cuad_doc_qa.evaluation.runner import run_bm25_baseline
 from cuad_doc_qa.generation import DEFAULT_BASE_URL, OllamaChat
 from cuad_doc_qa.ingestion import ChecksumMismatchError, download
@@ -23,6 +25,7 @@ DATA_DIR = Path("data/raw")
 SPLITS_DIR = Path("data/eval/splits")
 REPORTS_DIR = Path("reports")
 MODEL_ENV = "CUAD_QA_OLLAMA_MODEL"
+EXIT_REGRESSION = 3
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -67,6 +70,28 @@ def _ask(args: argparse.Namespace) -> int:
         result = session.pipeline.ask(question, doc_id, args.category)
     print(_render(result))
     return 0
+
+
+def _gate(args: argparse.Namespace) -> int:
+    tolerances = dict(args.tolerance) if args.tolerance else DEFAULT_TOLERANCES
+    checks = compare(load_report(args.baseline), load_report(args.candidate), tolerances)
+    for check in checks:
+        verdict = "REGRESSION" if check.regressed else "ok"
+        print(
+            f"{check.metric}: {check.baseline:.4f} -> {check.candidate:.4f} "
+            f"(drop {check.drop:+.4f}, tolerance {check.tolerance:.4f}) {verdict}"
+        )
+    return EXIT_REGRESSION if any(check.regressed for check in checks) else 0
+
+
+def _tolerance(value: str) -> tuple[str, float]:
+    metric, separator, number = value.partition("=")
+    try:
+        if not separator or not metric:
+            raise ValueError
+        return metric, float(number)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"expected METRIC=VALUE, got {value!r}") from None
 
 
 def _render(result: PipelineResult) -> str:
@@ -126,4 +151,18 @@ def _parser() -> argparse.ArgumentParser:
     ask_cmd.add_argument("--gate", type=Path, default=DEFAULT_GATE)
     ask_cmd.add_argument("--data-dir", type=Path, default=DATA_DIR)
     ask_cmd.set_defaults(handler=_ask)
+
+    gate_cmd = commands.add_parser(
+        "gate", help="fail (exit 3) when a candidate report regresses against a baseline"
+    )
+    gate_cmd.add_argument("--baseline", type=Path, required=True)
+    gate_cmd.add_argument("--candidate", type=Path, required=True)
+    gate_cmd.add_argument(
+        "--tolerance",
+        type=_tolerance,
+        action="append",
+        metavar="METRIC=VALUE",
+        help="largest allowed drop; repeatable; replaces the default recall@10=0.02",
+    )
+    gate_cmd.set_defaults(handler=_gate)
     return parser
