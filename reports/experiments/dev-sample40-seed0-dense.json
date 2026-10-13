@@ -1,0 +1,323 @@
+{
+  "metrics": {
+    "mrr@10": 0.4358,
+    "n": 573,
+    "ndcg@10": 0.4469,
+    "recall@10": 0.5843,
+    "recall@5": 0.4893
+  },
+  "per_category": {
+    "Affiliate License-Licensee": {
+      "mrr@10": 0.3375,
+      "n": 4,
+      "ndcg@10": 0.3682,
+      "recall@10": 0.625,
+      "recall@5": 0.375
+    },
+    "Agreement Date": {
+      "mrr@10": 0.2014,
+      "n": 38,
+      "ndcg@10": 0.24,
+      "recall@10": 0.3684,
+      "recall@5": 0.2763
+    },
+    "Anti-Assignment": {
+      "mrr@10": 0.6651,
+      "n": 31,
+      "ndcg@10": 0.6781,
+      "recall@10": 0.8441,
+      "recall@5": 0.7366
+    },
+    "Audit Rights": {
+      "mrr@10": 0.7646,
+      "n": 19,
+      "ndcg@10": 0.7172,
+      "recall@10": 0.8754,
+      "recall@5": 0.7289
+    },
+    "Cap On Liability": {
+      "mrr@10": 0.8045,
+      "n": 26,
+      "ndcg@10": 0.7205,
+      "recall@10": 0.7885,
+      "recall@5": 0.7343
+    },
+    "Change Of Control": {
+      "mrr@10": 0.553,
+      "n": 11,
+      "ndcg@10": 0.5963,
+      "recall@10": 0.7576,
+      "recall@5": 0.7576
+    },
+    "Competitive Restriction Exception": {
+      "mrr@10": 0.3944,
+      "n": 6,
+      "ndcg@10": 0.3927,
+      "recall@10": 0.5833,
+      "recall@5": 0.4167
+    },
+    "Covenant Not To Sue": {
+      "mrr@10": 0.037,
+      "n": 9,
+      "ndcg@10": 0.0556,
+      "recall@10": 0.1111,
+      "recall@5": 0.1111
+    },
+    "Document Name": {
+      "mrr@10": 0.1303,
+      "n": 40,
+      "ndcg@10": 0.1759,
+      "recall@10": 0.325,
+      "recall@5": 0.2
+    },
+    "Effective Date": {
+      "mrr@10": 0.2423,
+      "n": 29,
+      "ndcg@10": 0.2692,
+      "recall@10": 0.3966,
+      "recall@5": 0.3103
+    },
+    "Exclusivity": {
+      "mrr@10": 0.1624,
+      "n": 15,
+      "ndcg@10": 0.1999,
+      "recall@10": 0.4222,
+      "recall@5": 0.2444
+    },
+    "Expiration Date": {
+      "mrr@10": 0.6261,
+      "n": 32,
+      "ndcg@10": 0.6402,
+      "recall@10": 0.7969,
+      "recall@5": 0.6823
+    },
+    "Governing Law": {
+      "mrr@10": 0.7078,
+      "n": 34,
+      "ndcg@10": 0.7437,
+      "recall@10": 0.8824,
+      "recall@5": 0.8676
+    },
+    "Insurance": {
+      "mrr@10": 0.8636,
+      "n": 11,
+      "ndcg@10": 0.7884,
+      "recall@10": 0.8636,
+      "recall@5": 0.803
+    },
+    "Ip Ownership Assignment": {
+      "mrr@10": 0.2857,
+      "n": 11,
+      "ndcg@10": 0.3078,
+      "recall@10": 0.4091,
+      "recall@5": 0.3636
+    },
+    "Irrevocable Or Perpetual License": {
+      "mrr@10": 0.1215,
+      "n": 8,
+      "ndcg@10": 0.1651,
+      "recall@10": 0.3583,
+      "recall@5": 0.0833
+    },
+    "Joint Ip Ownership": {
+      "mrr@10": 0.1019,
+      "n": 6,
+      "ndcg@10": 0.1553,
+      "recall@10": 0.3333,
+      "recall@5": 0.1667
+    },
+    "License Grant": {
+      "mrr@10": 0.2488,
+      "n": 24,
+      "ndcg@10": 0.2403,
+      "recall@10": 0.3191,
+      "recall@5": 0.225
+    },
+    "Liquidated Damages": {
+      "mrr@10": 0.54,
+      "n": 5,
+      "ndcg@10": 0.483,
+      "recall@10": 0.6857,
+      "recall@5": 0.5486
+    },
+    "Minimum Commitment": {
+      "mrr@10": 0.3155,
+      "n": 13,
+      "ndcg@10": 0.3059,
+      "recall@10": 0.4269,
+      "recall@5": 0.2769
+    },
+    "Most Favored Nation": {
+      "mrr@10": 0.5,
+      "n": 1,
+      "ndcg@10": 0.6309,
+      "recall@10": 1.0,
+      "recall@5": 1.0
+    },
+    "No-Solicit Of Customers": {
+      "mrr@10": 0.4625,
+      "n": 4,
+      "ndcg@10": 0.5877,
+      "recall@10": 1.0,
+      "recall@5": 0.75
+    },
+    "No-Solicit Of Employees": {
+      "mrr@10": 0.9111,
+      "n": 9,
+      "ndcg@10": 0.9319,
+      "recall@10": 1.0,
+      "recall@5": 1.0
+    },
+    "Non-Compete": {
+      "mrr@10": 0.2922,
+      "n": 17,
+      "ndcg@10": 0.3362,
+      "recall@10": 0.5049,
+      "recall@5": 0.4167
+    },
+    "Non-Disparagement": {
+      "mrr@10": 0.5,
+      "n": 2,
+      "ndcg@10": 0.5,
+      "recall@10": 0.5,
+      "recall@5": 0.5
+    },
+    "Non-Transferable License": {
+      "mrr@10": 0.2569,
+      "n": 15,
+      "ndcg@10": 0.3023,
+      "recall@10": 0.5278,
+      "recall@5": 0.3778
+    },
+    "Notice Period To Terminate Renewal": {
+      "mrr@10": 0.7343,
+      "n": 10,
+      "ndcg@10": 0.772,
+      "recall@10": 0.9,
+      "recall@5": 0.8
+    },
+    "Parties": {
+      "mrr@10": 0.1501,
+      "n": 40,
+      "ndcg@10": 0.1557,
+      "recall@10": 0.2125,
+      "recall@5": 0.1625
+    },
+    "Post-Termination Services": {
+      "mrr@10": 0.3573,
+      "n": 18,
+      "ndcg@10": 0.3839,
+      "recall@10": 0.5844,
+      "recall@5": 0.4079
+    },
+    "Price Restrictions": {
+      "mrr@10": 0.05,
+      "n": 2,
+      "ndcg@10": 0.1445,
+      "recall@10": 0.5,
+      "recall@5": 0.0
+    },
+    "Renewal Term": {
+      "mrr@10": 0.7917,
+      "n": 16,
+      "ndcg@10": 0.8098,
+      "recall@10": 0.8906,
+      "recall@5": 0.8906
+    },
+    "Revenue/Profit Sharing": {
+      "mrr@10": 0.4853,
+      "n": 13,
+      "ndcg@10": 0.3732,
+      "recall@10": 0.5359,
+      "recall@5": 0.459
+    },
+    "Rofr/Rofo/Rofn": {
+      "mrr@10": 0.2222,
+      "n": 6,
+      "ndcg@10": 0.1908,
+      "recall@10": 0.25,
+      "recall@5": 0.25
+    },
+    "Source Code Escrow": {
+      "mrr@10": 1.0,
+      "n": 3,
+      "ndcg@10": 0.6086,
+      "recall@10": 0.5167,
+      "recall@5": 0.5167
+    },
+    "Termination For Convenience": {
+      "mrr@10": 0.5314,
+      "n": 18,
+      "ndcg@10": 0.6176,
+      "recall@10": 0.9278,
+      "recall@5": 0.7333
+    },
+    "Third Party Beneficiary": {
+      "mrr@10": 1.0,
+      "n": 3,
+      "ndcg@10": 1.0,
+      "recall@10": 1.0,
+      "recall@5": 1.0
+    },
+    "Uncapped Liability": {
+      "mrr@10": 0.9259,
+      "n": 9,
+      "ndcg@10": 0.8592,
+      "recall@10": 0.8704,
+      "recall@5": 0.8704
+    },
+    "Unlimited/All-You-Can-Eat-License": {
+      "mrr@10": 0.0,
+      "n": 2,
+      "ndcg@10": 0.0,
+      "recall@10": 0.0,
+      "recall@5": 0.0
+    },
+    "Volume Restriction": {
+      "mrr@10": 0.1667,
+      "n": 6,
+      "ndcg@10": 0.1667,
+      "recall@10": 0.1667,
+      "recall@5": 0.1667
+    },
+    "Warranty Duration": {
+      "mrr@10": 0.6607,
+      "n": 7,
+      "ndcg@10": 0.742,
+      "recall@10": 1.0,
+      "recall@5": 0.8
+    }
+  },
+  "provenance": {
+    "archive_sha256": "f8161d18bea4e9c05e78fa6dda61c19c846fb8087ea969c172753bc2f45b999a",
+    "chunking": {
+      "max_chars": 1500,
+      "strategy": "clause"
+    },
+    "k": 10,
+    "package_version": "0.1.0",
+    "queries": "cuad question text, verbatim",
+    "retriever": {
+      "model": {
+        "name": "BAAI/bge-small-en-v1.5",
+        "revision": "aa8f8b060edb00e03bfdd08813a2949946c8ba55",
+        "runtime": "fastembed 0.9.0",
+        "source": "Qdrant/bge-small-en-v1.5-onnx-Q"
+      },
+      "name": "dense",
+      "similarity": "cosine, exact"
+    },
+    "run": "experiment-dense",
+    "sample": {
+      "contracts": 40,
+      "seed": 0
+    },
+    "scope": "contract",
+    "split": "dev.txt",
+    "split_sha256": "542044c8fc7503cf0f1c5fff8ad21fe017d3505a8c33d4d55f5d269a2ad5b340"
+  },
+  "queries": {
+    "answerable": 573,
+    "unanswerable_skipped": 1067
+  }
+}

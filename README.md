@@ -43,6 +43,20 @@ uv run cuad-qa evaluate --split dev
 Run commands from the repository root. Exit codes: 0 success, 1 handled failure (bad data,
 checksum, network, missing FTS5), 2 invalid usage. `--log-level DEBUG` adds tracebacks.
 
+## Experiments
+
+Alternative retrievers are compared on the same 40 dev contracts (seed 0), never on test.
+Reports land in `reports/experiments/` and record every model with its downloaded revision.
+BM25 reports are byte-reproducible; dense and rerank scores come from ONNX Runtime and may differ
+in the last float bits across CPUs.
+
+```powershell
+uv run cuad-qa experiment --retriever bm25
+uv run cuad-qa experiment --retriever dense
+uv run cuad-qa experiment --retriever hybrid
+uv run cuad-qa experiment --retriever rerank
+```
+
 ## Abstention gate
 
 `configs/bm25-gate.json` holds per-category BM25 score thresholds, calibrated on dev to keep 95%

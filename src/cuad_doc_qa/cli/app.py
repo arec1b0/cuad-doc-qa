@@ -14,7 +14,12 @@ from pathlib import Path
 
 from cuad_doc_qa import __version__
 from cuad_doc_qa.evaluation.gate import DEFAULT_TOLERANCES, compare, load_report
-from cuad_doc_qa.evaluation.runner import run_bm25_baseline
+from cuad_doc_qa.evaluation.runner import (
+    RETRIEVERS,
+    RetrievalScores,
+    run_bm25_baseline,
+    run_experiment,
+)
 from cuad_doc_qa.generation import DEFAULT_BASE_URL, OllamaChat
 from cuad_doc_qa.ingestion import ChecksumMismatchError, download
 from cuad_doc_qa.pipeline import DEFAULT_GATE, DEFAULT_K, PipelineResult, cuad_session
@@ -24,6 +29,7 @@ logger = logging.getLogger(__name__)
 DATA_DIR = Path("data/raw")
 SPLITS_DIR = Path("data/eval/splits")
 REPORTS_DIR = Path("reports")
+MODELS_DIR = Path("artifacts/models")
 MODEL_ENV = "CUAD_QA_OLLAMA_MODEL"
 EXIT_REGRESSION = 3
 
@@ -51,13 +57,32 @@ def _download(args: argparse.Namespace) -> int:
 def _evaluate(args: argparse.Namespace) -> int:
     out = args.out or REPORTS_DIR / f"bm25-baseline-{args.split}.json"
     evaluation = run_bm25_baseline(SPLITS_DIR / f"{args.split}.txt", out, data_dir=args.data_dir)
-    scores = evaluation.overall
-    print(f"report: {out.as_posix()}")
+    _print_scores(out, evaluation.overall)
+    return 0
+
+
+def _experiment(args: argparse.Namespace) -> int:
+    size = f"sample{args.sample}-seed{args.seed}" if args.sample else "all"
+    out = args.out or REPORTS_DIR / "experiments" / f"dev-{size}-{args.retriever}.json"
+    evaluation = run_experiment(
+        args.retriever,
+        SPLITS_DIR / "dev.txt",
+        out,
+        sample=args.sample,
+        seed=args.seed,
+        data_dir=args.data_dir,
+        models_dir=args.models_dir,
+    )
+    _print_scores(out, evaluation.overall)
+    return 0
+
+
+def _print_scores(report: Path, scores: RetrievalScores) -> None:
+    print(f"report: {report.as_posix()}")
     print(
         f"n={scores.n} recall@5={scores.recall_at_5:.4f} recall@10={scores.recall_at_10:.4f} "
         f"mrr@10={scores.mrr_at_10:.4f} ndcg@10={scores.ndcg_at_10:.4f}"
     )
-    return 0
 
 
 def _ask(args: argparse.Namespace) -> int:
@@ -132,6 +157,23 @@ def _parser() -> argparse.ArgumentParser:
         "--out", type=Path, help="report path (default: reports/bm25-baseline-<split>.json)"
     )
     evaluate_cmd.set_defaults(handler=_evaluate)
+
+    experiment_cmd = commands.add_parser(
+        "experiment", help="evaluate one retriever on a seeded sample of dev contracts"
+    )
+    experiment_cmd.add_argument("--retriever", choices=RETRIEVERS, required=True)
+    experiment_cmd.add_argument(
+        "--sample", type=int, default=40, help="dev contracts to sample; 0 uses all 408"
+    )
+    experiment_cmd.add_argument("--seed", type=int, default=0)
+    experiment_cmd.add_argument("--data-dir", type=Path, default=DATA_DIR)
+    experiment_cmd.add_argument("--models-dir", type=Path, default=MODELS_DIR)
+    experiment_cmd.add_argument(
+        "--out",
+        type=Path,
+        help="report path (default: reports/experiments/dev-sample<N>-seed<S>-<retriever>.json)",
+    )
+    experiment_cmd.set_defaults(handler=_experiment)
 
     ask_cmd = commands.add_parser(
         "ask", help="answer one question about one contract with verified citations"
