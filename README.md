@@ -54,6 +54,19 @@ call. Regenerating it scores all 16,728 dev questions (about 15 minutes) and mus
 uv run python -c "from pathlib import Path; from cuad_doc_qa.abstention import calibrate_bm25_gate; calibrate_bm25_gate(Path('data/eval/splits/dev.txt'), Path('configs/bm25-gate.json'))"
 ```
 
+## Ask
+
+Answers one question about one contract through a local [Ollama](https://ollama.com) model.
+Contract ids are listed in `data/eval/splits/`; a unique prefix is enough. `--category` asks
+CUAD's question for that clause and applies the gate; `--question` asks free text without it.
+Every citation printed is the contract's own text at the printed character offsets.
+
+```powershell
+$env:CUAD_QA_OLLAMA_MODEL = "qwen2.5:7b"
+uv run cuad-qa ask --contract LIMEENERGYCO --category "Governing Law"
+uv run cuad-qa ask --contract LIMEENERGYCO --question "Can the distributor sell competing products?"
+```
+
 ## Checks
 
 ```powershell
