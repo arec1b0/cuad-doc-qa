@@ -2,6 +2,8 @@
 
 Document Q&A with verifiable citations over the CUAD contract corpus.
 
+What failed, what was fixed and what is still unmeasured: [docs/FAILURES.md](docs/FAILURES.md).
+
 ## Requirements
 
 - [uv](https://docs.astral.sh/uv/). It installs Python 3.12 from `.python-version` if it is missing.
