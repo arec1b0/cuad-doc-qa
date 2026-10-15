@@ -133,22 +133,37 @@ def answer_eval(
     return report
 
 
-def _resume(log_path: Path, config: Mapping[str, Any]) -> dict[str, Record]:
-    """Latest record per question from an earlier run with the same configuration."""
-    if not log_path.exists():
-        return {}
+def read_question_log(log_path: Path) -> tuple[dict[str, Any] | None, dict[str, Record]]:
+    """The run configuration and the latest record per question of a question log.
+
+    A retried question appears more than once; its last record is the one that counts. An empty
+    log has no configuration yet. Raises ValueError if the first line holds no configuration.
+    """
     lines = log_path.read_text(encoding="utf-8").splitlines()
     if not lines:
-        return {}
-    if json.loads(lines[0]).get("config") != json.loads(json.dumps(config)):
-        raise ValueError(
-            f"{log_path.as_posix()} was written with a different configuration; "
-            "delete it or choose another --out"
-        )
+        return None, {}
+    header = json.loads(lines[0])
+    if "config" not in header:
+        raise ValueError(f"{log_path.as_posix()} is not a question log: no config on line 1")
     records: dict[str, Record] = {}
     for line in lines[1:]:
         record = json.loads(line)
         records[record["question_id"]] = record
+    return header["config"], records
+
+
+def _resume(log_path: Path, config: Mapping[str, Any]) -> dict[str, Record]:
+    """Latest record per question from an earlier run with the same configuration."""
+    if not log_path.exists():
+        return {}
+    logged, records = read_question_log(log_path)
+    if logged is None:
+        return {}
+    if logged != json.loads(json.dumps(config)):
+        raise ValueError(
+            f"{log_path.as_posix()} was written with a different configuration; "
+            "delete it or choose another --out"
+        )
     return records
 
 

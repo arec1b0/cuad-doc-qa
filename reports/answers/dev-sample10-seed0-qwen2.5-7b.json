@@ -1,0 +1,351 @@
+{
+  "grounding": {
+    "claimed": 126,
+    "fuzzy": 10,
+    "grounded": 119,
+    "rejected": 7
+  },
+  "latency_seconds": {
+    "p50": 83.17,
+    "p95": 135.16
+  },
+  "metrics": {
+    "abstention_precision": 0.8196,
+    "abstention_recall": 0.9437,
+    "answer_precision": 0.6747,
+    "answer_recall": 0.4444,
+    "citation_precision": 0.547,
+    "error_rate": 0.0,
+    "false_answer_rate": 0.0563,
+    "gold_span_recall": 0.2731
+  },
+  "outcomes": {
+    "answerable": {
+      "answer": 67,
+      "correct": 56,
+      "low_retrieval_score": 7,
+      "no_grounded_citation": 1,
+      "not_found": 46,
+      "rejected_citation": 5
+    },
+    "unanswerable": {
+      "answer": 16,
+      "correct": 0,
+      "low_retrieval_score": 103,
+      "not_found": 163,
+      "rejected_citation": 2
+    }
+  },
+  "per_category": {
+    "Affiliate License-Licensee": {
+      "correct": 0,
+      "errors": 0,
+      "shown": 1,
+      "unanswerable": 10
+    },
+    "Affiliate License-Licensor": {
+      "correct": 0,
+      "errors": 0,
+      "shown": 0,
+      "unanswerable": 10
+    },
+    "Agreement Date": {
+      "answerable": 10,
+      "correct": 1,
+      "errors": 0,
+      "shown": 2
+    },
+    "Anti-Assignment": {
+      "answerable": 7,
+      "correct": 6,
+      "errors": 0,
+      "shown": 6,
+      "unanswerable": 3
+    },
+    "Audit Rights": {
+      "answerable": 4,
+      "correct": 3,
+      "errors": 0,
+      "shown": 4,
+      "unanswerable": 6
+    },
+    "Cap On Liability": {
+      "answerable": 7,
+      "correct": 5,
+      "errors": 0,
+      "shown": 5,
+      "unanswerable": 3
+    },
+    "Change Of Control": {
+      "answerable": 2,
+      "correct": 1,
+      "errors": 0,
+      "shown": 1,
+      "unanswerable": 8
+    },
+    "Competitive Restriction Exception": {
+      "answerable": 4,
+      "correct": 3,
+      "errors": 0,
+      "shown": 3,
+      "unanswerable": 6
+    },
+    "Covenant Not To Sue": {
+      "answerable": 1,
+      "correct": 1,
+      "errors": 0,
+      "shown": 1,
+      "unanswerable": 9
+    },
+    "Document Name": {
+      "answerable": 10,
+      "correct": 0,
+      "errors": 0,
+      "shown": 0
+    },
+    "Effective Date": {
+      "answerable": 7,
+      "correct": 3,
+      "errors": 0,
+      "shown": 5,
+      "unanswerable": 3
+    },
+    "Exclusivity": {
+      "answerable": 3,
+      "correct": 1,
+      "errors": 0,
+      "shown": 3,
+      "unanswerable": 7
+    },
+    "Expiration Date": {
+      "answerable": 7,
+      "correct": 1,
+      "errors": 0,
+      "shown": 1,
+      "unanswerable": 3
+    },
+    "Governing Law": {
+      "answerable": 7,
+      "correct": 5,
+      "errors": 0,
+      "shown": 6,
+      "unanswerable": 3
+    },
+    "Insurance": {
+      "answerable": 1,
+      "correct": 1,
+      "errors": 0,
+      "shown": 1,
+      "unanswerable": 9
+    },
+    "Ip Ownership Assignment": {
+      "answerable": 2,
+      "correct": 1,
+      "errors": 0,
+      "shown": 3,
+      "unanswerable": 8
+    },
+    "Irrevocable Or Perpetual License": {
+      "answerable": 1,
+      "correct": 0,
+      "errors": 0,
+      "shown": 1,
+      "unanswerable": 9
+    },
+    "Joint Ip Ownership": {
+      "answerable": 1,
+      "correct": 0,
+      "errors": 0,
+      "shown": 0,
+      "unanswerable": 9
+    },
+    "License Grant": {
+      "answerable": 6,
+      "correct": 5,
+      "errors": 0,
+      "shown": 6,
+      "unanswerable": 4
+    },
+    "Liquidated Damages": {
+      "answerable": 2,
+      "correct": 1,
+      "errors": 0,
+      "shown": 1,
+      "unanswerable": 8
+    },
+    "Minimum Commitment": {
+      "answerable": 4,
+      "correct": 1,
+      "errors": 0,
+      "shown": 1,
+      "unanswerable": 6
+    },
+    "Most Favored Nation": {
+      "correct": 0,
+      "errors": 0,
+      "shown": 0,
+      "unanswerable": 10
+    },
+    "No-Solicit Of Customers": {
+      "answerable": 2,
+      "correct": 0,
+      "errors": 0,
+      "shown": 2,
+      "unanswerable": 8
+    },
+    "No-Solicit Of Employees": {
+      "answerable": 2,
+      "correct": 2,
+      "errors": 0,
+      "shown": 2,
+      "unanswerable": 8
+    },
+    "Non-Compete": {
+      "answerable": 3,
+      "correct": 0,
+      "errors": 0,
+      "shown": 1,
+      "unanswerable": 7
+    },
+    "Non-Disparagement": {
+      "answerable": 1,
+      "correct": 0,
+      "errors": 0,
+      "shown": 0,
+      "unanswerable": 9
+    },
+    "Non-Transferable License": {
+      "answerable": 4,
+      "correct": 3,
+      "errors": 0,
+      "shown": 3,
+      "unanswerable": 6
+    },
+    "Notice Period To Terminate Renewal": {
+      "answerable": 1,
+      "correct": 1,
+      "errors": 0,
+      "shown": 2,
+      "unanswerable": 9
+    },
+    "Parties": {
+      "answerable": 10,
+      "correct": 0,
+      "errors": 0,
+      "shown": 5
+    },
+    "Post-Termination Services": {
+      "answerable": 3,
+      "correct": 3,
+      "errors": 0,
+      "shown": 4,
+      "unanswerable": 7
+    },
+    "Price Restrictions": {
+      "answerable": 1,
+      "correct": 0,
+      "errors": 0,
+      "shown": 0,
+      "unanswerable": 9
+    },
+    "Renewal Term": {
+      "answerable": 3,
+      "correct": 3,
+      "errors": 0,
+      "shown": 3,
+      "unanswerable": 7
+    },
+    "Revenue/Profit Sharing": {
+      "answerable": 3,
+      "correct": 3,
+      "errors": 0,
+      "shown": 3,
+      "unanswerable": 7
+    },
+    "Rofr/Rofo/Rofn": {
+      "correct": 0,
+      "errors": 0,
+      "shown": 0,
+      "unanswerable": 10
+    },
+    "Source Code Escrow": {
+      "answerable": 1,
+      "correct": 1,
+      "errors": 0,
+      "shown": 1,
+      "unanswerable": 9
+    },
+    "Termination For Convenience": {
+      "answerable": 2,
+      "correct": 1,
+      "errors": 0,
+      "shown": 1,
+      "unanswerable": 8
+    },
+    "Third Party Beneficiary": {
+      "correct": 0,
+      "errors": 0,
+      "shown": 3,
+      "unanswerable": 10
+    },
+    "Uncapped Liability": {
+      "answerable": 3,
+      "correct": 0,
+      "errors": 0,
+      "shown": 1,
+      "unanswerable": 7
+    },
+    "Unlimited/All-You-Can-Eat-License": {
+      "correct": 0,
+      "errors": 0,
+      "shown": 0,
+      "unanswerable": 10
+    },
+    "Volume Restriction": {
+      "answerable": 1,
+      "correct": 0,
+      "errors": 0,
+      "shown": 0,
+      "unanswerable": 9
+    },
+    "Warranty Duration": {
+      "correct": 0,
+      "errors": 0,
+      "shown": 1,
+      "unanswerable": 10
+    }
+  },
+  "provenance": {
+    "archive_sha256": "f8161d18bea4e9c05e78fa6dda61c19c846fb8087ea969c172753bc2f45b999a",
+    "gate": {
+      "path": "configs/bm25-gate.json",
+      "sha256": "a0d8f5ac503c88ccec2c526160aba3d0b2c2b15acb1ce1c3904ceb74fb88c0a0"
+    },
+    "k": 10,
+    "model": {
+      "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+      "name": "qwen2.5:7b",
+      "options": {
+        "num_ctx": 8192,
+        "num_predict": 1024,
+        "seed": 0,
+        "temperature": 0
+      }
+    },
+    "package_version": "0.1.0",
+    "prompt_sha256": "d05b2d6a9f02704b37ffe2aa6d687ac6fe632e0447192864c61cd1fffdbbaedd",
+    "retriever": "bm25, sqlite fts5, porter unicode61, 510 contracts",
+    "run": "answers",
+    "sample": {
+      "contracts": 10,
+      "seed": 0
+    },
+    "split": "dev.txt",
+    "split_sha256": "542044c8fc7503cf0f1c5fff8ad21fe017d3505a8c33d4d55f5d269a2ad5b340"
+  },
+  "questions": {
+    "answerable": 126,
+    "total": 410,
+    "unanswerable": 284
+  }
+}

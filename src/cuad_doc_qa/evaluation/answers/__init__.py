@@ -3,6 +3,7 @@
 from cuad_doc_qa.evaluation.answers.run import (
     MAX_CONSECUTIVE_ERRORS,
     answer_eval,
+    read_question_log,
     run_answer_eval,
 )
 from cuad_doc_qa.evaluation.answers.scoring import (
@@ -18,6 +19,7 @@ __all__ = [
     "answer_eval",
     "error_record",
     "is_correct",
+    "read_question_log",
     "run_answer_eval",
     "score_question",
 ]

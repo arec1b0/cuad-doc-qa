@@ -96,6 +96,10 @@ Every scored question is appended to `<report>.questions.jsonl`, so an interrupt
 where it stopped; three errors in a row abort it. The default sample makes 300 model calls
 (the gate withholds the other 110 questions), so on CPU it runs for hours.
 
+`reports/answers/` holds the committed qwen2.5:7b run with its question log. Model output is not
+reproducible across machines, so the log is the evidence: a test checks that the report is
+recomputed exactly from it and that no question is left in error.
+
 ```powershell
 $env:CUAD_QA_OLLAMA_MODEL = "qwen2.5:7b"
 uv run cuad-qa evaluate-answers --sample 1

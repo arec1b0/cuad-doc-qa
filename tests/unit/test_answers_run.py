@@ -8,7 +8,7 @@ import pytest
 
 from cuad_doc_qa.abstention import ScoreGate
 from cuad_doc_qa.domain import Chunk, SearchHit
-from cuad_doc_qa.evaluation.answers import MAX_CONSECUTIVE_ERRORS, answer_eval
+from cuad_doc_qa.evaluation.answers import MAX_CONSECUTIVE_ERRORS, answer_eval, read_question_log
 from cuad_doc_qa.generation import Generator
 from cuad_doc_qa.pipeline import CuadSession, Pipeline
 
@@ -128,3 +128,30 @@ def test_consecutive_errors_abort_and_keep_the_log(tmp_path: Path) -> None:
     )
     assert recovered["metrics"]["error_rate"] == 0.0
     assert recovered["questions"]["total"] == 4
+
+
+def test_question_log_keeps_the_last_record_of_a_retried_question(tmp_path: Path) -> None:
+    log = tmp_path / "run.questions.jsonl"
+    lines = [
+        {"config": CONFIG},
+        {"question_id": "A__x", "decision": "error"},
+        {"question_id": "B__x", "decision": "answer"},
+        {"question_id": "A__x", "decision": "not_found"},
+    ]
+    log.write_text("".join(json.dumps(line) + "\n" for line in lines), encoding="utf-8")
+
+    config, records = read_question_log(log)
+
+    assert config == CONFIG
+    assert {qid: record["decision"] for qid, record in records.items()} == {
+        "A__x": "not_found",
+        "B__x": "answer",
+    }
+
+
+def test_a_file_without_a_config_line_is_not_a_question_log(tmp_path: Path) -> None:
+    log = tmp_path / "run.questions.jsonl"
+    log.write_text('{"question_id": "A__x"}\n', encoding="utf-8")
+
+    with pytest.raises(ValueError, match="not a question log"):
+        read_question_log(log)
