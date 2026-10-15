@@ -1,5 +1,7 @@
 # cuad-doc-qa
 
+[![ci](https://github.com/arec1b0/cuad-doc-qa/actions/workflows/ci.yml/badge.svg)](https://github.com/arec1b0/cuad-doc-qa/actions/workflows/ci.yml)
+
 Document Q&A with verifiable citations over the CUAD contract corpus.
 
 What failed, what was fixed and what is still unmeasured: [docs/FAILURES.md](docs/FAILURES.md).
@@ -141,3 +143,9 @@ uv run cuad-qa gate --baseline reports/bm25-baseline-dev.json --candidate artifa
 CI (`.github/workflows/ci.yml`) runs lint and unit tests on Ubuntu and Windows. On Ubuntu it
 also runs the real-data tests, checks that the committed dev report is reproduced by the code,
 and gates that report against the one on the base branch. The test split is never used by CI.
+
+## License
+
+Code: MIT, see [LICENSE](LICENSE). CUAD v1 is by The Atticus Project under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); the contract excerpts quoted in
+`reports/answers/` come from it under the same license.
