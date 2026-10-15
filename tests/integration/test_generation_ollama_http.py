@@ -2,6 +2,7 @@
 
 import json
 import threading
+import time
 from collections.abc import Iterator
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
@@ -18,6 +19,7 @@ class FakeOllama:
     def __init__(self) -> None:
         self.requests: list[dict[str, Any]] = []
         self.status = 200
+        self.delay = 0.0
         self.reply: dict[str, Any] = {
             "message": {"role": "assistant", "content": '{"found": true}'},
             "done": True,
@@ -38,6 +40,7 @@ def ollama() -> Iterator[tuple[FakeOllama, str]]:
         def do_POST(self) -> None:  # noqa: N802
             length = int(self.headers["Content-Length"])
             state.requests.append({"path": self.path, "body": json.loads(self.rfile.read(length))})
+            time.sleep(state.delay)
             body = (
                 json.dumps(state.reply)
                 if state.status == 200
@@ -107,6 +110,14 @@ def test_unreachable_server_is_reported() -> None:
         OllamaChat("qwen2.5:7b", base_url="http://127.0.0.1:9", timeout=5).complete(
             MESSAGES, SCHEMA
         )
+
+
+def test_slow_reply_names_the_timeout(ollama: tuple[FakeOllama, str]) -> None:
+    state, url = ollama
+    state.delay = 2.0
+
+    with pytest.raises(RuntimeError, match=r"did not reply within 0.5s; raise the timeout"):
+        OllamaChat("qwen2.5:7b", base_url=url, timeout=0.5).complete(MESSAGES, SCHEMA)
 
 
 def test_digest_names_the_pulled_weights(ollama: tuple[FakeOllama, str]) -> None:

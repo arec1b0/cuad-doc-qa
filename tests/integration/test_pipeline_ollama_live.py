@@ -2,6 +2,7 @@
 
 Needs a running Ollama server with the model named in CUAD_QA_OLLAMA_MODEL already pulled,
 and the CUAD archive in data/raw. Checks that the command completes, not answer quality.
+On CPU one call takes minutes: set CUAD_QA_OLLAMA_TIMEOUT if the default 300 s is too short.
 """
 
 import os
@@ -36,6 +37,6 @@ def test_ask_completes_with_a_decision(capsys: pytest.CaptureFixture[str]) -> No
         ]
     )
 
-    out = capsys.readouterr().out
-    assert code == 0
-    assert "\ndecision: " in out
+    captured = capsys.readouterr()
+    assert code == 0, captured.err
+    assert "\ndecision: " in captured.out

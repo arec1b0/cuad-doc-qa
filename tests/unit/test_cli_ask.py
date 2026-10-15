@@ -42,13 +42,16 @@ def session_calls(monkeypatch: pytest.MonkeyPatch) -> list[dict[str, Any]]:
 
     @contextmanager
     def fake_session(chat: Any, num_ctx: int, *args: Any) -> Iterator[CuadSession]:
-        calls.append({"model": chat.model, "num_ctx": num_ctx, "args": args})
+        calls.append(
+            {"model": chat.model, "timeout": chat.timeout, "num_ctx": num_ctx, "args": args}
+        )
         generator = Generator(FakeChat(reply), num_ctx=num_ctx)
         pipeline = Pipeline(search, [CHUNK], generator, ScoreGate({"Governing Law": 20.0}), k=2)
         yield CuadSession(pipeline, QUESTIONS, (DOC, "LIMESTONE-EX-10-SUPPLY", "OTHER"))
 
     monkeypatch.setattr(app, "cuad_session", fake_session)
     monkeypatch.delenv(app.MODEL_ENV, raising=False)
+    monkeypatch.delenv(app.TIMEOUT_ENV, raising=False)
     return calls
 
 
@@ -64,6 +67,7 @@ def test_free_form_question_prints_answer_with_located_citation(
     assert session_calls == [
         {
             "model": "qwen2.5:7b",
+            "timeout": 300.0,
             "num_ctx": 8192,
             "args": (Path("data/raw"), Path("configs/bm25-gate.json"), 10),
         }
@@ -90,8 +94,15 @@ def test_category_uses_the_cuad_question_and_the_gate(
     out = capsys.readouterr().out.splitlines()
     assert code == 0
     assert session_calls[0]["model"] == "llama3.1:8b"
+    assert session_calls[0]["timeout"] == 300.0
     assert out[1] == "question: Which state's law governs the contract?"
     assert out[2] == "decision: abstain (low_retrieval_score)"
+
+
+def test_timeout_flag_reaches_the_model_client(session_calls: list[dict[str, Any]]) -> None:
+    main(["ask", "--contract", DOC, "--question", "q", "--model", "m", "--timeout", "900"])
+
+    assert session_calls[0]["timeout"] == 900.0
 
 
 @pytest.mark.parametrize(

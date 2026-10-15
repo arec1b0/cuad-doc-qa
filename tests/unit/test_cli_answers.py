@@ -17,6 +17,7 @@ def calls(monkeypatch: pytest.MonkeyPatch) -> list[dict[str, Any]]:
         recorded.append(
             {
                 "model": chat.model,
+                "timeout": chat.timeout,
                 "split": split,
                 "out": out,
                 "sample": sample,
@@ -33,6 +34,7 @@ def calls(monkeypatch: pytest.MonkeyPatch) -> list[dict[str, Any]]:
 
     monkeypatch.setattr(app, "run_answer_eval", fake)
     monkeypatch.delenv(app.MODEL_ENV, raising=False)
+    monkeypatch.delenv(app.TIMEOUT_ENV, raising=False)
     return recorded
 
 
@@ -44,6 +46,7 @@ def test_defaults_and_a_windows_safe_report_name(
     assert calls == [
         {
             "model": "qwen2.5:7b",
+            "timeout": 300.0,
             "split": Path("data/eval/splits/dev.txt"),
             "out": Path("reports/answers/dev-sample10-seed0-qwen2.5-7b.json"),
             "sample": 10,
@@ -75,6 +78,41 @@ def test_model_from_environment_and_custom_sample(
 def test_missing_model_exits_2(calls: list[dict[str, Any]]) -> None:
     with pytest.raises(SystemExit) as exit_info:
         main(["evaluate-answers"])
+
+    assert exit_info.value.code == 2
+    assert calls == []
+
+
+def test_timeout_from_environment_and_flag(
+    calls: list[dict[str, Any]], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv(app.TIMEOUT_ENV, "1800")
+
+    main(["evaluate-answers", "--model", "m"])
+    main(["evaluate-answers", "--model", "m", "--timeout", "90.5"])
+
+    assert [call["timeout"] for call in calls] == [1800.0, 90.5]
+
+
+@pytest.mark.parametrize("value", ["0", "-5", "abc", "inf", "nan"])
+def test_invalid_timeout_exits_2(
+    calls: list[dict[str, Any]], capsys: pytest.CaptureFixture[str], value: str
+) -> None:
+    with pytest.raises(SystemExit) as exit_info:
+        main(["evaluate-answers", "--model", "m", "--timeout", value])
+
+    assert exit_info.value.code == 2
+    assert "expected a positive number of seconds" in capsys.readouterr().err
+    assert calls == []
+
+
+def test_invalid_timeout_in_environment_exits_2(
+    calls: list[dict[str, Any]], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv(app.TIMEOUT_ENV, "five minutes")
+
+    with pytest.raises(SystemExit) as exit_info:
+        main(["evaluate-answers", "--model", "m"])
 
     assert exit_info.value.code == 2
     assert calls == []

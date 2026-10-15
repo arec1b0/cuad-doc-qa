@@ -1,6 +1,7 @@
 """Generator with a real local Ollama model on BM25 results from one real CUAD contract.
 
-Needs a running Ollama server with the model named in CUAD_QA_OLLAMA_MODEL already pulled.
+Needs a running Ollama server with the model named in CUAD_QA_OLLAMA_MODEL already pulled;
+CUAD_QA_OLLAMA_TIMEOUT overrides the default 300 s per reply, as it does for the CLI.
 Checks the contract between the model and the parser, not answer quality.
 """
 
@@ -26,7 +27,7 @@ def test_local_model_returns_a_parsable_answer_citing_only_given_chunks() -> Non
     document = load_documents(archive)[0]
     chunks = chunk_document(document)
     question = load_questions(archive)["Governing Law"]
-    chat = OllamaChat(model)
+    chat = OllamaChat(model, timeout=float(os.environ.get("CUAD_QA_OLLAMA_TIMEOUT", "300")))
 
     with Bm25Index.build(chunks) as bm25:
         by_id = {chunk.chunk_id: chunk for chunk in chunks}

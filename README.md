@@ -83,6 +83,9 @@ uv run cuad-qa ask --contract LIMEENERGYCO --category "Governing Law"
 uv run cuad-qa ask --contract LIMEENERGYCO --question "Can the distributor sell competing products?"
 ```
 
+A 7B model answers in seconds on a GPU and in minutes on CPU; `ollama ps` shows which one it
+runs on. `--timeout SECONDS` (env `CUAD_QA_OLLAMA_TIMEOUT`, default 300) bounds each model reply.
+
 ## Answer evaluation
 
 Runs all 41 CUAD questions of a seeded dev sample (default 10 contracts, 410 questions) through
@@ -90,7 +93,8 @@ the full pipeline and scores answers against the expert spans: a shown answer is
 one of its citations overlaps an expert span. The report records answer recall and precision,
 false answers on unanswerable questions, abstention by reason, citation precision and latency.
 Every scored question is appended to `<report>.questions.jsonl`, so an interrupted run picks up
-where it stopped; three errors in a row abort it.
+where it stopped; three errors in a row abort it. The default sample makes 300 model calls
+(the gate withholds the other 110 questions), so on CPU it runs for hours.
 
 ```powershell
 $env:CUAD_QA_OLLAMA_MODEL = "qwen2.5:7b"
@@ -114,7 +118,7 @@ uv run pytest -m network
 ```
 
 Tests against a local [Ollama](https://ollama.com) server are deselected too. They need the
-server running and the model pulled:
+server running and the model pulled. They make 33 model calls; on CPU raise the timeout:
 
 ```powershell
 ollama pull qwen2.5:7b

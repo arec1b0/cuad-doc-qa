@@ -3,6 +3,9 @@
 Decoding is pinned for reproducibility: temperature 0 and a fixed seed. Output is constrained
 by Ollama's structured outputs (`format` = JSON schema). `num_ctx` is always sent explicitly:
 Ollama's default context is small and it truncates longer prompts silently.
+
+The reply is not streamed, so `timeout` bounds the whole call: prompt evaluation plus generation.
+On CPU a 7B model needs minutes per call; raise the timeout rather than retry.
 """
 
 import json
@@ -35,6 +38,7 @@ class OllamaChat:
     ) -> None:
         self.model = model
         self.num_ctx = num_ctx
+        self.timeout = timeout
         self._base = base_url.rstrip("/")
         self._url = self._base + "/api/chat"
         self._options = {
@@ -43,7 +47,6 @@ class OllamaChat:
             "num_ctx": num_ctx,
             "num_predict": num_predict,
         }
-        self._timeout = timeout
 
     @property
     def options(self) -> dict[str, int]:
@@ -66,7 +69,7 @@ class OllamaChat:
         return None
 
     def complete(self, messages: list[dict[str, str]], schema: dict[str, Any]) -> str:
-        """Raises RuntimeError if Ollama is unreachable, rejects the request or cuts the reply."""
+        """Raises RuntimeError if Ollama is unreachable, times out, rejects or cuts the reply."""
         body = json.dumps(
             {
                 "model": self.model,
@@ -82,13 +85,18 @@ class OllamaChat:
 
         started = time.perf_counter()
         try:
-            with urllib.request.urlopen(request, timeout=self._timeout) as response:
+            with urllib.request.urlopen(request, timeout=self.timeout) as response:
                 payload = json.loads(response.read())
         except urllib.error.HTTPError as error:
             detail = error.read().decode("utf-8", errors="replace")
             hint = f"; run: ollama pull {self.model}" if error.code == 404 else ""
             raise RuntimeError(f"Ollama returned HTTP {error.code}: {detail}{hint}") from error
         except (urllib.error.URLError, TimeoutError) as error:
+            if isinstance(error, TimeoutError) or isinstance(error.reason, TimeoutError):
+                raise RuntimeError(
+                    f"Ollama did not reply within {self.timeout:g}s; raise the timeout "
+                    "(cuad-qa --timeout) or check `ollama ps` for a model running on CPU"
+                ) from error
             raise RuntimeError(f"Ollama is not reachable at {self._url}: {error}") from error
 
         if payload.get("done_reason") == "length":

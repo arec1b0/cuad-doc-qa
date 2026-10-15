@@ -7,6 +7,7 @@ network, missing FTS5, Ollama unreachable or invalid reply, reports not comparab
 
 import argparse
 import logging
+import math
 import os
 import re
 import sys
@@ -33,6 +34,8 @@ SPLITS_DIR = Path("data/eval/splits")
 REPORTS_DIR = Path("reports")
 MODELS_DIR = Path("artifacts/models")
 MODEL_ENV = "CUAD_QA_OLLAMA_MODEL"
+TIMEOUT_ENV = "CUAD_QA_OLLAMA_TIMEOUT"
+DEFAULT_TIMEOUT = "300"
 EXIT_REGRESSION = 3
 
 
@@ -88,7 +91,7 @@ def _print_scores(report: Path, scores: RetrievalScores) -> None:
 
 
 def _ask(args: argparse.Namespace) -> int:
-    chat = OllamaChat(args.model, base_url=args.ollama_url)
+    chat = OllamaChat(args.model, base_url=args.ollama_url, timeout=args.timeout)
     with cuad_session(chat, chat.num_ctx, args.data_dir, args.gate, args.k) as session:
         doc_id = session.resolve_contract(args.contract)
         if args.category is not None and args.category not in session.questions:
@@ -100,7 +103,7 @@ def _ask(args: argparse.Namespace) -> int:
 
 
 def _evaluate_answers(args: argparse.Namespace) -> int:
-    chat = OllamaChat(args.model, base_url=args.ollama_url)
+    chat = OllamaChat(args.model, base_url=args.ollama_url, timeout=args.timeout)
     size = f"sample{args.sample}-seed{args.seed}" if args.sample else "all"
     model = re.sub(r"[^A-Za-z0-9._-]+", "-", args.model)
     out = args.out or REPORTS_DIR / "answers" / f"dev-{size}-{model}.json"
@@ -136,6 +139,16 @@ def _tolerance(value: str) -> tuple[str, float]:
         return metric, float(number)
     except ValueError:
         raise argparse.ArgumentTypeError(f"expected METRIC=VALUE, got {value!r}") from None
+
+
+def _seconds(value: str) -> float:
+    try:
+        seconds = float(value)
+    except ValueError:
+        seconds = 0.0
+    if not 0 < seconds < math.inf:
+        raise argparse.ArgumentTypeError(f"expected a positive number of seconds, got {value!r}")
+    return seconds
 
 
 def _render(result: PipelineResult) -> str:
@@ -244,6 +257,12 @@ def _add_pipeline_args(command: argparse.ArgumentParser) -> None:
         "--model", default=model, required=model is None, help=f"Ollama model (env {MODEL_ENV})"
     )
     command.add_argument("--ollama-url", default=DEFAULT_BASE_URL)
+    command.add_argument(
+        "--timeout",
+        type=_seconds,
+        default=os.environ.get(TIMEOUT_ENV, DEFAULT_TIMEOUT),
+        help=f"seconds to wait for one model reply (env {TIMEOUT_ENV}, default {DEFAULT_TIMEOUT})",
+    )
     command.add_argument("--k", type=int, default=DEFAULT_K, help="chunks given to the model")
     command.add_argument("--gate", type=Path, default=DEFAULT_GATE)
     command.add_argument("--data-dir", type=Path, default=DATA_DIR)
