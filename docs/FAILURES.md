@@ -2,9 +2,10 @@
 
 Every number here comes from a file in this repository: a report in `reports/`, the gate in
 `configs/`, or an assertion in `tests/`. Retriever experiments use 40 dev contracts drawn with
-seed 0 (573 answerable questions, `reports/experiments/`). The only test-split numbers are the
-final BM25 results. Metrics are over answerable questions at k=10; a chunk counts as relevant if
-it overlaps an expert-annotated span.
+seed 0 (573 answerable questions, `reports/experiments/`). The end-to-end answer run uses 10 dev
+contracts drawn with seed 0 (410 questions, 126 answerable, `reports/answers/`). The only
+test-split numbers are the final BM25 results. Retrieval metrics are over answerable questions at
+k=10; a chunk counts as relevant if it overlaps an expert-annotated span.
 
 ## Shipped result
 
@@ -15,6 +16,16 @@ verbatim (`reports/bm25-baseline-test.json`, 102 test contracts, 1,244 answerabl
 |---|---|---|---|
 | 0.5514 | 0.6706 | 0.4780 | 0.5048 |
 
+End to end with qwen2.5:7b through Ollama at temperature 0: BM25 top 10, the gate, generation,
+quote grounding and the abstention rules (`reports/answers/dev-sample10-seed0-qwen2.5-7b.json`,
+one run on dev). A shown answer is correct when one of its citations overlaps an expert span.
+
+| answer recall | answer precision | false answer rate | citation precision |
+|---|---|---|---|
+| 0.4444 | 0.6747 | 0.0563 | 0.5470 |
+
+With 126 answerable questions, answer recall lies between 0.36 and 0.53 (95% Wilson interval).
+
 ## Summary
 
 | Failure | Fix | Status |
@@ -23,8 +34,10 @@ verbatim (`reports/bm25-baseline-test.json`, 102 test contracts, 1,244 answerabl
 | Dense retrieval below BM25 | Hybrid fusion tried | Not shipped: no meaningful gain over BM25 |
 | Cross-encoder rerank below BM25 overall | None | Not shipped |
 | Clauses cut at chunk boundaries | Clause-aware chunking | Mitigated, no baseline to compare |
-| Quotes the contract does not contain | Grounding every quote, strict abstention | Fixed for the check, LLM rate unmeasured |
-| Most questions are unanswerable | Retrieval gate plus abstention rules | Built, effect not yet reproducible |
+| Quotes the contract does not contain | Grounding every quote, strict abstention | Fixed: 7 of 126 model quotes rejected |
+| Most questions are unanswerable | Retrieval gate plus abstention rules | Measured: 16 of 284 answered |
+| Answerable clause never retrieved | None | Open: 38 of 70 misses |
+| Model calls a retrieved clause absent | None | Open: 18 of 70 misses |
 
 ## 1. Metadata questions share no words with their answers
 
@@ -99,7 +112,8 @@ Gold spans used as quotes (`tests/integration/test_citations_cuad_release.py`):
 - one word shortened by a character, 9,948 quotes of 40 characters or more: all grounded, 9,921
   overlapping the gold span, the rest on a near-identical passage.
 
-How often a real model's quotes ground is not measured.
+On the answer run, qwen2.5:7b claimed 126 quotes: 119 grounded, 10 of them by fuzzy matching, and
+7 rejected. The rejections withheld 5 answerable and 2 unanswerable questions.
 
 ## 6. Most questions are unanswerable
 
@@ -112,8 +126,10 @@ Of 4,182 test questions, 2,938 have no answer in their contract
 - after the model: withheld when the model reports the clause absent, cites nothing, or gives a
   quote that cannot be located.
 
-The gate's effect on unanswerable questions was measured once with a script that is not in the
-repository, so it is not stated here.
+On the answer run, of 284 unanswerable questions the gate withheld 103 before the model, at the
+cost of 7 of 126 answerable ones, and spared 110 of 410 model calls. The model reported the clause
+absent for 163 more, 2 were withheld for a quote that could not be located, and 16 were answered.
+Of all withheld questions, 0.8196 have no answer in their contract.
 
 ## 7. Engineering failures and closed risks
 
@@ -126,11 +142,35 @@ repository, so it is not stated here.
   (`tests/unit/test_retrieval_bm25.py`).
 - Observed: an early dense and hybrid comparison was run on the test split. Its numbers are
   discarded, `cuad-qa experiment` refuses any split but dev, and CI never reads test.
+- Observed: on a CPU, qwen2.5:7b takes 83.17 s per answer at the median and 135.16 s at p95. A
+  reply slower than the fixed 300 s timeout was reported as "Ollama is not reachable", and the
+  live tests hid the message. Timeouts are now named as such and set with `--timeout`; the answer
+  run used 1800 s, and its one question that still timed out was retried on resume (both records
+  are in the question log).
+
+## 8. Where answerable questions are lost
+
+Each of the 126 answerable questions of the answer run, by the stage that lost it. Retrieval is
+replayed from the question log: BM25 is deterministic, and the replay reproduces every logged top
+score (`tests/integration/test_answers_breakdown_cuad_release.py`).
+
+| Outcome | Questions |
+|---|---|
+| Correct: a shown citation overlaps an expert span | 56 |
+| No expert span in the 10 retrieved chunks | 38 |
+| Retrieved, withheld by the gate | 5 |
+| Retrieved, the model answers that the clause is absent | 18 |
+| Retrieved, a quote cannot be located | 4 |
+| Retrieved, the answer cites other text | 5 |
+
+Retrieval loses more answerable questions (38) than all later stages together (32): whatever
+follows retrieval, at most 88 of 126 can be answered. The metadata categories of section 1 fail
+end to end too: Parties 0 of 10 correct, Document Name 0 of 10, Agreement Date 1 of 10. None of
+the 5 Parties answers shown cites an annotated party name.
 
 ## Not measured
 
-- End-to-end answers with a model: correctness, citation precision against gold spans, abstention
-  precision and recall. Only smoke tests against a live Ollama exist.
-- The retrieval gate's effect on unanswerable questions.
+- Answers on the test split, with another model, or across repeated runs: the answer run is one
+  run of qwen2.5:7b on dev.
 - A fixed-size chunking baseline.
 - Whether differences on the 573-question sample are statistically significant.

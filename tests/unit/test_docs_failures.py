@@ -4,6 +4,7 @@ Regenerating a report or changing a test assertion without updating the write-up
 """
 
 import json
+import math
 from functools import reduce
 from operator import getitem
 from pathlib import Path
@@ -16,6 +17,8 @@ TEST_REPORT = "reports/bm25-baseline-test.json"
 DEV_REPORT = "reports/bm25-baseline-dev.json"
 GATE = "configs/bm25-gate.json"
 CITATIONS_TEST = "tests/integration/test_citations_cuad_release.py"
+ANSWERS = "reports/answers/dev-sample10-seed0-qwen2.5-7b.json"
+ANSWERS_LOG = "reports/answers/dev-sample10-seed0-qwen2.5-7b.questions.jsonl"
 
 
 def _experiment(retriever: str) -> str:
@@ -51,6 +54,35 @@ REPORT_NUMBERS = [
         )
     ],
     (_experiment("bm25"), ("metrics", "n"), "573"),
+    (ANSWERS, ("metrics", "answer_recall"), "0.4444"),
+    (ANSWERS, ("metrics", "answer_precision"), "0.6747"),
+    (ANSWERS, ("metrics", "false_answer_rate"), "0.0563"),
+    (ANSWERS, ("metrics", "citation_precision"), "0.5470"),
+    (ANSWERS, ("metrics", "abstention_precision"), "0.8196"),
+    (ANSWERS, ("questions", "total"), "410"),
+    (ANSWERS, ("questions", "answerable"), "126"),
+    (ANSWERS, ("questions", "unanswerable"), "284"),
+    (ANSWERS, ("grounding", "claimed"), "126"),
+    (ANSWERS, ("grounding", "grounded"), "119"),
+    (ANSWERS, ("grounding", "fuzzy"), "10"),
+    (ANSWERS, ("grounding", "rejected"), "7"),
+    (ANSWERS, ("outcomes", "answerable", "correct"), "56"),
+    (ANSWERS, ("outcomes", "answerable", "low_retrieval_score"), "7"),
+    (ANSWERS, ("outcomes", "answerable", "rejected_citation"), "5"),
+    (ANSWERS, ("outcomes", "unanswerable", "low_retrieval_score"), "103"),
+    (ANSWERS, ("outcomes", "unanswerable", "not_found"), "163"),
+    (ANSWERS, ("outcomes", "unanswerable", "rejected_citation"), "2"),
+    (ANSWERS, ("outcomes", "unanswerable", "answer"), "16"),
+    (ANSWERS, ("latency_seconds", "p50"), "83.17"),
+    (ANSWERS, ("latency_seconds", "p95"), "135.16"),
+    (ANSWERS, ("per_category", "Parties", "correct"), "0"),
+    (ANSWERS, ("per_category", "Parties", "shown"), "5"),
+    (ANSWERS, ("per_category", "Document Name", "correct"), "0"),
+    (ANSWERS, ("per_category", "Agreement Date", "correct"), "1"),
+    *[
+        (ANSWERS, ("per_category", category, "answerable"), "10")
+        for category in ("Parties", "Document Name", "Agreement Date")
+    ],
     *[
         (_experiment(retriever), ("per_category", category, "recall@10"), value)
         for category, values in {
@@ -88,3 +120,39 @@ def test_gate_category_count_matches_the_committed_gate() -> None:
 def test_cited_grounding_counts_are_asserted_by_the_integration_test(number: str) -> None:
     assert number in (REPO / CITATIONS_TEST).read_text(encoding="utf-8")
     assert f"{int(number):,}" in DOC
+
+
+def _answers() -> dict:
+    return json.loads((REPO / ANSWERS).read_text(encoding="utf-8"))
+
+
+def test_answer_recall_interval_is_the_wilson_interval_of_the_run() -> None:
+    report = _answers()
+    n = report["questions"]["answerable"]
+    p = report["outcomes"]["answerable"]["correct"] / n
+    z = 1.96
+    center = (p + z * z / (2 * n)) / (1 + z * z / n)
+    half = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / (1 + z * z / n)
+
+    assert f"between {center - half:.2f} and {center + half:.2f} (95% Wilson" in DOC
+
+
+def test_gate_counts_in_the_write_up_add_up() -> None:
+    report = _answers()
+    gated = sum(o["low_retrieval_score"] for o in report["outcomes"].values())
+
+    assert f"spared {gated} of {report['questions']['total']} model calls" in DOC
+    assert f"cost of {report['outcomes']['answerable']['low_retrieval_score']} of 126" in DOC
+
+
+def test_the_one_retried_timeout_is_in_the_question_log() -> None:
+    errors = [
+        record
+        for line in (REPO / ANSWERS_LOG).read_text(encoding="utf-8").splitlines()[1:]
+        if (record := json.loads(line))["decision"] == "error"
+    ]
+
+    assert [error["error"].split(";")[0] for error in errors] == [
+        "RuntimeError: Ollama did not reply within 1800s"
+    ]
+    assert "one question that still timed out was retried on resume" in DOC
