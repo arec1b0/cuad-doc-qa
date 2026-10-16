@@ -1,0 +1,317 @@
+{
+  "metrics": {
+    "mrr@10": 0.6389,
+    "n": 5458,
+    "ndcg@10": 0.6664,
+    "recall@10": 0.8321,
+    "recall@5": 0.7433
+  },
+  "per_category": {
+    "Affiliate License-Licensee": {
+      "mrr@10": 0.3824,
+      "n": 47,
+      "ndcg@10": 0.4517,
+      "recall@10": 0.7311,
+      "recall@5": 0.4456
+    },
+    "Affiliate License-Licensor": {
+      "mrr@10": 0.2927,
+      "n": 17,
+      "ndcg@10": 0.3196,
+      "recall@10": 0.4748,
+      "recall@5": 0.4042
+    },
+    "Agreement Date": {
+      "mrr@10": 0.6397,
+      "n": 377,
+      "ndcg@10": 0.7061,
+      "recall@10": 0.9072,
+      "recall@5": 0.8554
+    },
+    "Anti-Assignment": {
+      "mrr@10": 0.9024,
+      "n": 302,
+      "ndcg@10": 0.8816,
+      "recall@10": 0.9453,
+      "recall@5": 0.8996
+    },
+    "Audit Rights": {
+      "mrr@10": 0.832,
+      "n": 176,
+      "ndcg@10": 0.8022,
+      "recall@10": 0.8956,
+      "recall@5": 0.8277
+    },
+    "Cap On Liability": {
+      "mrr@10": 0.5966,
+      "n": 231,
+      "ndcg@10": 0.5924,
+      "recall@10": 0.7711,
+      "recall@5": 0.6821
+    },
+    "Change Of Control": {
+      "mrr@10": 0.6557,
+      "n": 95,
+      "ndcg@10": 0.6811,
+      "recall@10": 0.8679,
+      "recall@5": 0.744
+    },
+    "Competitive Restriction Exception": {
+      "mrr@10": 0.3604,
+      "n": 60,
+      "ndcg@10": 0.3982,
+      "recall@10": 0.6278,
+      "recall@5": 0.4333
+    },
+    "Covenant Not To Sue": {
+      "mrr@10": 0.5469,
+      "n": 76,
+      "ndcg@10": 0.5807,
+      "recall@10": 0.8081,
+      "recall@5": 0.6195
+    },
+    "Document Name": {
+      "mrr@10": 0.6569,
+      "n": 408,
+      "ndcg@10": 0.7193,
+      "recall@10": 0.9081,
+      "recall@5": 0.8542
+    },
+    "Effective Date": {
+      "mrr@10": 0.5738,
+      "n": 320,
+      "ndcg@10": 0.632,
+      "recall@10": 0.8484,
+      "recall@5": 0.7385
+    },
+    "Exclusivity": {
+      "mrr@10": 0.4857,
+      "n": 147,
+      "ndcg@10": 0.5145,
+      "recall@10": 0.7288,
+      "recall@5": 0.5458
+    },
+    "Expiration Date": {
+      "mrr@10": 0.458,
+      "n": 335,
+      "ndcg@10": 0.5263,
+      "recall@10": 0.7731,
+      "recall@5": 0.6129
+    },
+    "Governing Law": {
+      "mrr@10": 0.8736,
+      "n": 354,
+      "ndcg@10": 0.8992,
+      "recall@10": 0.9831,
+      "recall@5": 0.9718
+    },
+    "Insurance": {
+      "mrr@10": 0.7098,
+      "n": 134,
+      "ndcg@10": 0.7224,
+      "recall@10": 0.8948,
+      "recall@5": 0.7829
+    },
+    "Ip Ownership Assignment": {
+      "mrr@10": 0.4764,
+      "n": 101,
+      "ndcg@10": 0.5046,
+      "recall@10": 0.7097,
+      "recall@5": 0.5769
+    },
+    "Irrevocable Or Perpetual License": {
+      "mrr@10": 0.8904,
+      "n": 57,
+      "ndcg@10": 0.872,
+      "recall@10": 0.9472,
+      "recall@5": 0.905
+    },
+    "Joint Ip Ownership": {
+      "mrr@10": 0.4606,
+      "n": 39,
+      "ndcg@10": 0.4715,
+      "recall@10": 0.625,
+      "recall@5": 0.5515
+    },
+    "License Grant": {
+      "mrr@10": 0.6281,
+      "n": 205,
+      "ndcg@10": 0.638,
+      "recall@10": 0.809,
+      "recall@5": 0.6804
+    },
+    "Liquidated Damages": {
+      "mrr@10": 0.4403,
+      "n": 47,
+      "ndcg@10": 0.4831,
+      "recall@10": 0.701,
+      "recall@5": 0.566
+    },
+    "Minimum Commitment": {
+      "mrr@10": 0.4415,
+      "n": 133,
+      "ndcg@10": 0.4507,
+      "recall@10": 0.671,
+      "recall@5": 0.5007
+    },
+    "Most Favored Nation": {
+      "mrr@10": 0.4183,
+      "n": 25,
+      "ndcg@10": 0.4232,
+      "recall@10": 0.5533,
+      "recall@5": 0.5133
+    },
+    "No-Solicit Of Customers": {
+      "mrr@10": 0.6148,
+      "n": 27,
+      "ndcg@10": 0.5808,
+      "recall@10": 0.6728,
+      "recall@5": 0.5802
+    },
+    "No-Solicit Of Employees": {
+      "mrr@10": 0.8818,
+      "n": 49,
+      "ndcg@10": 0.8667,
+      "recall@10": 0.9048,
+      "recall@5": 0.8741
+    },
+    "Non-Compete": {
+      "mrr@10": 0.2711,
+      "n": 96,
+      "ndcg@10": 0.2781,
+      "recall@10": 0.4309,
+      "recall@5": 0.3227
+    },
+    "Non-Disparagement": {
+      "mrr@10": 0.5081,
+      "n": 31,
+      "ndcg@10": 0.4614,
+      "recall@10": 0.4785,
+      "recall@5": 0.4785
+    },
+    "Non-Transferable License": {
+      "mrr@10": 0.6906,
+      "n": 116,
+      "ndcg@10": 0.7132,
+      "recall@10": 0.8823,
+      "recall@5": 0.8096
+    },
+    "Notice Period To Terminate Renewal": {
+      "mrr@10": 0.807,
+      "n": 95,
+      "ndcg@10": 0.8467,
+      "recall@10": 0.9842,
+      "recall@5": 0.9474
+    },
+    "Parties": {
+      "mrr@10": 0.7507,
+      "n": 407,
+      "ndcg@10": 0.7879,
+      "recall@10": 0.9376,
+      "recall@5": 0.9114
+    },
+    "Post-Termination Services": {
+      "mrr@10": 0.4556,
+      "n": 153,
+      "ndcg@10": 0.486,
+      "recall@10": 0.7185,
+      "recall@5": 0.5499
+    },
+    "Price Restrictions": {
+      "mrr@10": 0.3207,
+      "n": 15,
+      "ndcg@10": 0.3548,
+      "recall@10": 0.48,
+      "recall@5": 0.4667
+    },
+    "Renewal Term": {
+      "mrr@10": 0.8747,
+      "n": 150,
+      "ndcg@10": 0.8871,
+      "recall@10": 0.9433,
+      "recall@5": 0.9208
+    },
+    "Revenue/Profit Sharing": {
+      "mrr@10": 0.4903,
+      "n": 131,
+      "ndcg@10": 0.4794,
+      "recall@10": 0.6242,
+      "recall@5": 0.5158
+    },
+    "Rofr/Rofo/Rofn": {
+      "mrr@10": 0.594,
+      "n": 68,
+      "ndcg@10": 0.5682,
+      "recall@10": 0.7074,
+      "recall@5": 0.5756
+    },
+    "Source Code Escrow": {
+      "mrr@10": 0.8542,
+      "n": 12,
+      "ndcg@10": 0.8032,
+      "recall@10": 0.8583,
+      "recall@5": 0.8417
+    },
+    "Termination For Convenience": {
+      "mrr@10": 0.7172,
+      "n": 154,
+      "ndcg@10": 0.756,
+      "recall@10": 0.9193,
+      "recall@5": 0.8413
+    },
+    "Third Party Beneficiary": {
+      "mrr@10": 0.6712,
+      "n": 26,
+      "ndcg@10": 0.7139,
+      "recall@10": 0.8654,
+      "recall@5": 0.8654
+    },
+    "Uncapped Liability": {
+      "mrr@10": 0.5273,
+      "n": 98,
+      "ndcg@10": 0.5831,
+      "recall@10": 0.8214,
+      "recall@5": 0.6718
+    },
+    "Unlimited/All-You-Can-Eat-License": {
+      "mrr@10": 0.6964,
+      "n": 14,
+      "ndcg@10": 0.7186,
+      "recall@10": 0.8571,
+      "recall@5": 0.7857
+    },
+    "Volume Restriction": {
+      "mrr@10": 0.2457,
+      "n": 65,
+      "ndcg@10": 0.2542,
+      "recall@10": 0.3885,
+      "recall@5": 0.2705
+    },
+    "Warranty Duration": {
+      "mrr@10": 0.5349,
+      "n": 65,
+      "ndcg@10": 0.5538,
+      "recall@10": 0.7631,
+      "recall@5": 0.6188
+    }
+  },
+  "provenance": {
+    "archive_sha256": "f8161d18bea4e9c05e78fa6dda61c19c846fb8087ea969c172753bc2f45b999a",
+    "chunking": {
+      "max_chars": 1500,
+      "strategy": "clause"
+    },
+    "k": 10,
+    "package_version": "0.1.0",
+    "queries": "cuad question text, verbatim",
+    "retriever": "bm25, sqlite fts5, porter unicode61; first 7 chunks lead for Agreement Date, Document Name, Effective Date, Parties",
+    "run": "bm25-lead-baseline",
+    "scope": "contract",
+    "split": "dev.txt",
+    "split_sha256": "542044c8fc7503cf0f1c5fff8ad21fe017d3505a8c33d4d55f5d269a2ad5b340"
+  },
+  "queries": {
+    "answerable": 5458,
+    "unanswerable_skipped": 11270
+  }
+}

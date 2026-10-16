@@ -42,7 +42,13 @@ text verbatim. Metrics cover answerable questions; unanswerable ones are counted
 uv run cuad-qa download
 uv run cuad-qa evaluate --split test
 uv run cuad-qa evaluate --split dev
+uv run cuad-qa evaluate --split test --retriever bm25-lead
+uv run cuad-qa evaluate --split dev --retriever bm25-lead
 ```
+
+`--retriever bm25-lead` puts each contract's first 7 chunks ahead of BM25's hits for the four
+questions about its name, parties and dates (Agreement Date, Document Name, Effective Date,
+Parties); every other question is ranked exactly as by BM25.
 
 Run commands from the repository root. Exit codes: 0 success, 1 handled failure (bad data,
 checksum, network, missing FTS5), 2 invalid usage. `--log-level DEBUG` adds tracebacks.

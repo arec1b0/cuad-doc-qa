@@ -60,8 +60,13 @@ def _download(args: argparse.Namespace) -> int:
 
 
 def _evaluate(args: argparse.Namespace) -> int:
-    out = args.out or REPORTS_DIR / f"bm25-baseline-{args.split}.json"
-    evaluation = run_bm25_baseline(SPLITS_DIR / f"{args.split}.txt", out, data_dir=args.data_dir)
+    out = args.out or REPORTS_DIR / f"{args.retriever}-baseline-{args.split}.json"
+    evaluation = run_bm25_baseline(
+        SPLITS_DIR / f"{args.split}.txt",
+        out,
+        data_dir=args.data_dir,
+        lead=args.retriever == "bm25-lead",
+    )
     _print_scores(out, evaluation.overall)
     return 0
 
@@ -184,9 +189,17 @@ def _parser() -> argparse.ArgumentParser:
         "evaluate", help="evaluate BM25 retrieval on a frozen split and write the report"
     )
     evaluate_cmd.add_argument("--split", choices=["dev", "test"], required=True)
+    evaluate_cmd.add_argument(
+        "--retriever",
+        choices=["bm25", "bm25-lead"],
+        default="bm25",
+        help="bm25-lead puts each contract's first chunks first for metadata questions",
+    )
     evaluate_cmd.add_argument("--data-dir", type=Path, default=DATA_DIR)
     evaluate_cmd.add_argument(
-        "--out", type=Path, help="report path (default: reports/bm25-baseline-<split>.json)"
+        "--out",
+        type=Path,
+        help="report path (default: reports/<retriever>-baseline-<split>.json)",
     )
     evaluate_cmd.set_defaults(handler=_evaluate)
 

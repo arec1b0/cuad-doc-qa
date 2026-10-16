@@ -17,10 +17,12 @@ SCORES = RetrievalScores(
 
 class FakeBaseline:
     def __init__(self) -> None:
-        self.calls: list[tuple[Path, Path, Path]] = []
+        self.calls: list[tuple[Path, Path, Path, bool]] = []
 
-    def __call__(self, split_path: Path, report_path: Path, data_dir: Path) -> RetrievalEvaluation:
-        self.calls.append((split_path, report_path, data_dir))
+    def __call__(
+        self, split_path: Path, report_path: Path, data_dir: Path, lead: bool
+    ) -> RetrievalEvaluation:
+        self.calls.append((split_path, report_path, data_dir, lead))
         return RetrievalEvaluation(overall=SCORES, per_category={}, unanswerable_skipped=1)
 
 
@@ -43,6 +45,7 @@ def test_evaluate_runs_the_split_and_prints_the_scores(
             Path("data/eval/splits/test.txt"),
             Path("reports/bm25-baseline-test.json"),
             Path("data/raw"),
+            False,
         )
     ]
     assert capsys.readouterr().out == (
@@ -60,9 +63,25 @@ def test_evaluate_honours_out_and_data_dir(
     main(["evaluate", "--split", "dev", "--out", "custom/r.json", "--data-dir", "elsewhere"])
 
     assert baseline.calls == [
-        (Path("data/eval/splits/dev.txt"), Path("custom/r.json"), Path("elsewhere"))
+        (Path("data/eval/splits/dev.txt"), Path("custom/r.json"), Path("elsewhere"), False)
     ]
     assert capsys.readouterr().out.startswith("report: custom/r.json\n")
+
+
+def test_evaluate_with_lead_chunks_has_its_own_report(monkeypatch: pytest.MonkeyPatch) -> None:
+    baseline = FakeBaseline()
+    monkeypatch.setattr(app, "run_bm25_baseline", baseline)
+
+    main(["evaluate", "--split", "test", "--retriever", "bm25-lead"])
+
+    assert baseline.calls == [
+        (
+            Path("data/eval/splits/test.txt"),
+            Path("reports/bm25-lead-baseline-test.json"),
+            Path("data/raw"),
+            True,
+        )
+    ]
 
 
 def test_download_prints_the_archive_path(
