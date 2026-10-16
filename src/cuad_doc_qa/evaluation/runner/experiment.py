@@ -14,7 +14,7 @@ import hashlib
 import logging
 import random
 import time
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from contextlib import contextmanager
 from importlib.metadata import version
 from pathlib import Path
@@ -39,13 +39,14 @@ from cuad_doc_qa.ingestion import (
 from cuad_doc_qa.retrieval.dense import DenseIndex, FastEmbedEmbedder
 from cuad_doc_qa.retrieval.fusion import DEFAULT_DEPTH as FUSION_DEPTH
 from cuad_doc_qa.retrieval.fusion import RRF_K, FusedSearch
+from cuad_doc_qa.retrieval.lead import DEFAULT_LEAD, LEAD_CATEGORIES, LeadChunkSearch
 from cuad_doc_qa.retrieval.lexical import Bm25Index
 from cuad_doc_qa.retrieval.rerank import DEFAULT_DEPTH as RERANK_DEPTH
 from cuad_doc_qa.retrieval.rerank import FastEmbedCrossEncoder, RerankedSearch
 
 logger = logging.getLogger(__name__)
 
-RETRIEVERS = ("bm25", "dense", "hybrid", "rerank")
+RETRIEVERS = ("bm25", "bm25-lead", "dense", "hybrid", "rerank")
 DEV_SPLIT = "dev.txt"
 
 
@@ -83,8 +84,9 @@ def run_experiment(
         if judgment.doc_id in contracts
     ]
 
-    with _retriever(retriever, chunks, contracts, models_dir) as (search, description):
-        evaluation = evaluate_retrieval(search, judgments, load_questions(archive))
+    questions = load_questions(archive)
+    with _retriever(retriever, chunks, contracts, questions, models_dir) as (search, description):
+        evaluation = evaluate_retrieval(search, judgments, questions)
 
     write_report(
         report_path,
@@ -109,12 +111,28 @@ def run_experiment(
 
 @contextmanager
 def _retriever(
-    name: str, chunks: Sequence[Chunk], contracts: frozenset[str], models_dir: Path
+    name: str,
+    chunks: Sequence[Chunk],
+    contracts: frozenset[str],
+    questions: Mapping[str, str],
+    models_dir: Path,
 ) -> Iterator[tuple[Search, dict[str, Any]]]:
     bm25_description = {"name": "bm25", "index": "sqlite fts5, porter unicode61, 510 contracts"}
     with Bm25Index.build(chunks) as bm25:
         if name == "bm25":
             yield bm25.search, bm25_description
+            return
+        if name == "bm25-lead":
+            queries = [questions[category] for category in LEAD_CATEGORIES]
+            yield (
+                LeadChunkSearch(bm25.search, chunks, queries, lead=DEFAULT_LEAD),
+                {
+                    "name": "bm25-lead",
+                    "first_stage": bm25_description,
+                    "lead": DEFAULT_LEAD,
+                    "categories": list(LEAD_CATEGORIES),
+                },
+            )
             return
         if name == "rerank":
             scorer = FastEmbedCrossEncoder(cache_dir=models_dir)

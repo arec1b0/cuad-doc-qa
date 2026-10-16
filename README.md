@@ -56,6 +56,7 @@ in the last float bits across CPUs.
 
 ```powershell
 uv run cuad-qa experiment --retriever bm25
+uv run cuad-qa experiment --retriever bm25-lead
 uv run cuad-qa experiment --retriever dense
 uv run cuad-qa experiment --retriever hybrid
 uv run cuad-qa experiment --retriever rerank
