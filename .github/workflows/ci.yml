@@ -55,19 +55,26 @@ jobs:
       - run: uv sync --locked
       - name: Real-data tests (CUAD archive and ONNX models)
         run: uv run pytest -q -m network
-      - name: Committed dev report is reproduced by the code
+      - name: Committed dev reports are reproduced by the code
         run: |
-          uv run cuad-qa --log-level WARNING evaluate --split dev
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          git diff --exit-code -- reports/bm25-baseline-dev.json
+          foreach ($retriever in "bm25", "bm25-lead") {
+            uv run cuad-qa --log-level WARNING evaluate --split dev --retriever $retriever
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          git diff --exit-code -- reports/bm25-baseline-dev.json reports/bm25-lead-baseline-dev.json
       - name: Dev recall@10 does not drop more than 2 points against the base
         env:
           BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || github.event.before }}
         run: |
           New-Item -ItemType Directory -Force artifacts | Out-Null
-          git show "${env:BASE}:reports/bm25-baseline-dev.json" > artifacts/baseline-dev.json
-          if ($LASTEXITCODE -ne 0) {
-            Write-Output "No dev report at ${env:BASE}; nothing to compare against."
-            exit 0
+          foreach ($retriever in "bm25", "bm25-lead") {
+            $report = "reports/$retriever-baseline-dev.json"
+            git show "${env:BASE}:$report" > "artifacts/base-$retriever-dev.json"
+            if ($LASTEXITCODE -ne 0) {
+              Write-Output "No $report at ${env:BASE}; nothing to compare against."
+              continue
+            }
+            uv run cuad-qa gate --baseline "artifacts/base-$retriever-dev.json" --candidate $report
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
-          uv run cuad-qa gate --baseline artifacts/baseline-dev.json --candidate reports/bm25-baseline-dev.json
+          exit 0

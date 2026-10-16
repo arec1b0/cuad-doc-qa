@@ -4,21 +4,25 @@ Every number here comes from a file in this repository: a report in `reports/`, 
 `configs/`, or an assertion in `tests/`. Retriever experiments use 40 dev contracts drawn with
 seed 0 (573 answerable questions, `reports/experiments/`). The end-to-end answer run uses 10 dev
 contracts drawn with seed 0 (410 questions, 126 answerable, `reports/answers/`). The only
-test-split numbers are the final BM25 results. Retrieval metrics are over answerable questions at
-k=10; a chunk counts as relevant if it overlaps an expert-annotated span.
+test-split numbers are the final retrieval results, BM25 and the shipped bm25-lead. Retrieval
+metrics are over answerable questions at k=10; a chunk counts as relevant if it overlaps an
+expert-annotated span.
 
 ## Shipped result
 
 BM25 over SQLite FTS5, each question searched only inside its own contract, CUAD question text
-verbatim (`reports/bm25-baseline-test.json`, 102 test contracts, 1,244 answerable questions):
+verbatim. For the four questions about a contract's name, parties and dates, the contract's first
+7 chunks come first (bm25-lead, section 1). Test split, 102 contracts, 1,244 answerable questions:
 
-| recall@5 | recall@10 | mrr@10 | ndcg@10 |
-|---|---|---|---|
-| 0.5514 | 0.6706 | 0.4780 | 0.5048 |
+| Retriever | recall@5 | recall@10 | mrr@10 | ndcg@10 |
+|---|---|---|---|---|
+| BM25 (`reports/bm25-baseline-test.json`) | 0.5514 | 0.6706 | 0.4780 | 0.5048 |
+| Shipped: bm25-lead (`reports/bm25-lead-baseline-test.json`) | 0.7176 | 0.8119 | 0.6184 | 0.6455 |
 
 End to end with qwen2.5:7b through Ollama at temperature 0: BM25 top 10, the gate, generation,
 quote grounding and the abstention rules (`reports/answers/dev-sample10-seed0-qwen2.5-7b.json`,
-one run on dev). A shown answer is correct when one of its citations overlaps an expert span.
+one run on dev, made before lead chunks existed). A shown answer is correct when one of its
+citations overlaps an expert span.
 
 | answer recall | answer precision | false answer rate | citation precision |
 |---|---|---|---|
@@ -30,13 +34,13 @@ With 126 answerable questions, answer recall lies between 0.36 and 0.53 (95% Wil
 
 | Failure | Fix | Status |
 |---|---|---|
-| Metadata questions share no words with their answers | Cross-encoder rerank tried | Open: helps metadata, hurts overall |
+| Metadata questions share no words with their answers | The contract's first chunks first | Fixed: test recall@10 0.6706 to 0.8119 |
 | Dense retrieval below BM25 | Hybrid fusion tried | Not shipped: no meaningful gain over BM25 |
 | Cross-encoder rerank below BM25 overall | None | Not shipped |
 | Clauses cut at chunk boundaries | Clause-aware chunking | Mitigated, no baseline to compare |
 | Quotes the contract does not contain | Grounding every quote, strict abstention | Fixed: 7 of 126 model quotes rejected |
 | Most questions are unanswerable | Retrieval gate plus abstention rules | Measured: 16 of 284 answered |
-| Answerable clause never retrieved | None | Open: 38 of 70 misses |
+| Answerable clause never retrieved | Lead chunks for metadata (section 1) | Open: 38 of 70 misses before lead chunks |
 | Model calls a retrieved clause absent | None | Open: 18 of 70 misses |
 
 ## 1. Metadata questions share no words with their answers
@@ -60,8 +64,29 @@ Three alternatives on the 40-contract sample, recall@10 (n per category is small
 | Agreement Date | 0.3158 | 0.3684 | 0.3553 | 0.7368 |
 
 The reranker more than doubles Agreement Date recall but lowers overall recall (section 3), so it
-is not shipped. Routing only the metadata categories to the reranker is the obvious next step; it
-is neither built nor measured.
+is not shipped.
+
+The shipped fix is positional. A contract states its name, parties and dates in its opening, so
+for those questions the contract's first chunks are ranked ahead of BM25's hits
+(`src/cuad_doc_qa/retrieval/lead/`). On dev this raises recall@10 by more than 0.05 for exactly
+four categories, Agreement Date, Document Name, Effective Date and Parties, and for no other.
+Among 1, 2, 3, 4, 5, 7 and 10 leading chunks, 7 maximized their mean recall@10 on dev; the commit
+that made both choices records the measurements. The leading chunks carry BM25's top score, so
+the gate reads the score it was calibrated on.
+
+The test split was evaluated once, against a criterion fixed beforehand: recall@10 up in each of
+the four categories, overall recall@10 up by at least 0.02, every other category identical to
+BM25 (`reports/bm25-lead-baseline-test.json`). All three hold:
+
+| Category | n | BM25 | bm25-lead |
+|---|---|---|---|
+| Agreement Date | 93 | 0.3871 | 0.9140 |
+| Document Name | 102 | 0.3333 | 0.8431 |
+| Effective Date | 70 | 0.6071 | 0.8214 |
+| Parties | 102 | 0.3464 | 0.9330 |
+
+On the full dev split, overall recall@10 rises from 0.6734 to 0.8321
+(`reports/bm25-lead-baseline-dev.json`), close to the 0.6706 to 0.8119 on test.
 
 ## 2. Dense retrieval is below BM25
 
@@ -150,9 +175,10 @@ Of all withheld questions, 0.8196 have no answer in their contract.
 
 ## 8. Where answerable questions are lost
 
-Each of the 126 answerable questions of the answer run, by the stage that lost it. Retrieval is
-replayed from the question log: BM25 is deterministic, and the replay reproduces every logged top
-score (`tests/integration/test_answers_breakdown_cuad_release.py`).
+Each of the 126 answerable questions of the answer run, by the stage that lost it. The run used
+BM25 alone, before lead chunks (section 1). Retrieval is replayed from the question log: BM25 is
+deterministic, and the replay reproduces every logged top score
+(`tests/integration/test_answers_breakdown_cuad_release.py`).
 
 | Outcome | Questions |
 |---|---|
@@ -172,5 +198,6 @@ the 5 Parties answers shown cites an annotated party name.
 
 - Answers on the test split, with another model, or across repeated runs: the answer run is one
   run of qwen2.5:7b on dev.
+- Answers with lead chunks: the answer run predates them, so their end-to-end effect is unknown.
 - A fixed-size chunking baseline.
 - Whether differences on the 573-question sample are statistically significant.

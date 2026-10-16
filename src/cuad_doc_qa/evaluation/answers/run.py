@@ -32,6 +32,7 @@ from cuad_doc_qa.generation import OllamaChat
 from cuad_doc_qa.generation.prompt import SYSTEM_PROMPT
 from cuad_doc_qa.ingestion import CUAD_SHA256, download, load_annotations
 from cuad_doc_qa.pipeline import CuadSession, cuad_session
+from cuad_doc_qa.retrieval.lead import DEFAULT_LEAD, LEAD_CATEGORIES
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +73,10 @@ def run_answer_eval(
         "sample": {"contracts": len(contracts), "seed": seed if sample else None},
         "model": {"name": chat.model, "digest": digest, "options": chat.options},
         "prompt_sha256": _sha256(SYSTEM_PROMPT.encode("utf-8")),
-        "retriever": "bm25, sqlite fts5, porter unicode61, 510 contracts",
+        "retriever": (
+            "bm25, sqlite fts5, porter unicode61, 510 contracts; "
+            f"first {DEFAULT_LEAD} chunks lead for {', '.join(LEAD_CATEGORIES)}"
+        ),
         "k": k,
         "gate": {"path": gate_path.as_posix(), "sha256": _sha256(gate_path.read_bytes())},
     }

@@ -92,8 +92,9 @@ uv run cuad-qa ask --contract LIMEENERGYCO --category "Governing Law"
 uv run cuad-qa ask --contract LIMEENERGYCO --question "Can the distributor sell competing products?"
 ```
 
-A 7B model answers in seconds on a GPU and in minutes on CPU; `ollama ps` shows which one it
-runs on. `--timeout SECONDS` (env `CUAD_QA_OLLAMA_TIMEOUT`, default 300) bounds each model reply.
+For the Agreement Date, Document Name, Effective Date and Parties categories, the model sees the
+contract's first 7 chunks first, then BM25's hits. A 7B model answers in seconds on a GPU and in
+minutes on CPU; `ollama ps` shows which one it runs on. `--timeout SECONDS` (env `CUAD_QA_OLLAMA_TIMEOUT`, default 300) bounds each model reply.
 
 ## Answer evaluation
 
@@ -148,8 +149,9 @@ uv run cuad-qa gate --baseline reports/bm25-baseline-dev.json --candidate artifa
 ```
 
 CI (`.github/workflows/ci.yml`) runs lint and unit tests on Ubuntu and Windows. On Ubuntu it
-also runs the real-data tests, checks that the committed dev report is reproduced by the code,
-and gates that report against the one on the base branch. The test split is never used by CI.
+also runs the real-data tests, checks that the committed BM25 and bm25-lead dev reports are
+reproduced by the code, and gates both against the ones on the base branch. CI never evaluates on
+the test split.
 
 ## License
 

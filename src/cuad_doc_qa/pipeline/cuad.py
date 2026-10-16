@@ -1,7 +1,9 @@
 """The pipeline wired to the CUAD corpus: BM25 over all 510 contracts and the dev-calibrated gate.
 
-The index must cover the same contracts and chunking the gate was calibrated on, or its
-thresholds are meaningless; `tests/unit/test_abstention_committed_gate.py` guards the latter.
+The questions of LEAD_CATEGORIES get their contract's first chunks ahead of BM25's hits
+(LeadChunkSearch); those chunks carry BM25's top score, so the gate reads the score it was
+calibrated on. The index must cover the same contracts and chunking the gate was calibrated on,
+or its thresholds are meaningless; `tests/unit/test_abstention_committed_gate.py` guards that.
 """
 
 from collections.abc import Iterator
@@ -14,6 +16,7 @@ from cuad_doc_qa.chunking import chunk_document
 from cuad_doc_qa.generation import ChatModel, Generator
 from cuad_doc_qa.ingestion import download, load_documents, load_questions
 from cuad_doc_qa.pipeline.pipeline import DEFAULT_K, Pipeline
+from cuad_doc_qa.retrieval.lead import DEFAULT_LEAD, LEAD_CATEGORIES, LeadChunkSearch
 from cuad_doc_qa.retrieval.lexical import Bm25Index
 
 DEFAULT_GATE = Path("configs/bm25-gate.json")
@@ -47,11 +50,18 @@ def cuad_session(
     archive = download(data_dir)
     documents = load_documents(archive)
     chunks = [chunk for document in documents for chunk in chunk_document(document)]
+    questions = load_questions(archive)
     with Bm25Index.build(chunks) as index:
+        search = LeadChunkSearch(
+            index.search,
+            chunks,
+            [questions[category] for category in LEAD_CATEGORIES],
+            lead=DEFAULT_LEAD,
+        )
         yield CuadSession(
             pipeline=Pipeline(
-                index.search, chunks, Generator(chat, num_ctx=num_ctx), load_gate(gate_path), k
+                search, chunks, Generator(chat, num_ctx=num_ctx), load_gate(gate_path), k
             ),
-            questions=load_questions(archive),
+            questions=questions,
             contracts=tuple(document.doc_id for document in documents),
         )

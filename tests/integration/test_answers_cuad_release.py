@@ -1,7 +1,8 @@
 """answer_eval on one real dev contract: real BM25, committed gate, real gold spans, fake model.
 
-The fake model quotes the first 80 characters of the first source, so the test checks that every
-CUAD question is asked, logged and counted once, not answer quality. Needs CUAD in data/raw.
+The fake model quotes the first 80 characters of the first source's own text (a source can be
+shorter, such as a contract title), so the test checks that every CUAD question is asked, logged
+and counted once, not answer quality. Needs CUAD in data/raw.
 """
 
 import json
@@ -22,7 +23,9 @@ CONTRACT = "LIMEENERGYCO_09_09_1999-EX-10-DISTRIBUTOR AGREEMENT"
 
 class QuotingChat:
     def complete(self, messages: list[dict[str, str]], schema: dict[str, Any]) -> str:
-        first_source = re.search(r"\[S1\]\n(.*)", messages[1]["content"], re.DOTALL)
+        first_source = re.search(
+            r"\[S1\]\n(.*?)\n\n(?:\[S2\]|Question: )", messages[1]["content"], re.DOTALL
+        )
         assert first_source is not None
         quote = first_source.group(1)[:80]
         return json.dumps(

@@ -11,6 +11,8 @@ from pathlib import Path
 
 import pytest
 
+from cuad_doc_qa.retrieval.lead import DEFAULT_LEAD, LEAD_CATEGORIES
+
 REPO = Path(__file__).resolve().parents[2]
 DOC = (REPO / "docs" / "FAILURES.md").read_text(encoding="utf-8")
 TEST_REPORT = "reports/bm25-baseline-test.json"
@@ -18,6 +20,8 @@ DEV_REPORT = "reports/bm25-baseline-dev.json"
 GATE = "configs/bm25-gate.json"
 CITATIONS_TEST = "tests/integration/test_citations_cuad_release.py"
 ANSWERS = "reports/answers/dev-sample10-seed0-qwen2.5-7b.json"
+LEAD_TEST = "reports/bm25-lead-baseline-test.json"
+LEAD_DEV = "reports/bm25-lead-baseline-dev.json"
 ANSWERS_LOG = "reports/answers/dev-sample10-seed0-qwen2.5-7b.questions.jsonl"
 
 
@@ -54,6 +58,30 @@ REPORT_NUMBERS = [
         )
     ],
     (_experiment("bm25"), ("metrics", "n"), "573"),
+    (DEV_REPORT, ("metrics", "recall@10"), "0.6734"),
+    (LEAD_DEV, ("metrics", "recall@10"), "0.8321"),
+    *[
+        (LEAD_TEST, ("metrics", metric), value)
+        for metric, value in zip(
+            ("recall@5", "recall@10", "mrr@10", "ndcg@10"),
+            ("0.7176", "0.8119", "0.6184", "0.6455"),
+            strict=True,
+        )
+    ],
+    *[
+        (report, ("per_category", category, key), value)
+        for category, n, before, after in (
+            ("Agreement Date", "93", "0.3871", "0.9140"),
+            ("Document Name", "102", "0.3333", "0.8431"),
+            ("Effective Date", "70", "0.6071", "0.8214"),
+            ("Parties", "102", "0.3464", "0.9330"),
+        )
+        for report, key, value in (
+            (TEST_REPORT, "n", n),
+            (TEST_REPORT, "recall@10", before),
+            (LEAD_TEST, "recall@10", after),
+        )
+    ],
     (ANSWERS, ("metrics", "answer_recall"), "0.4444"),
     (ANSWERS, ("metrics", "answer_precision"), "0.6747"),
     (ANSWERS, ("metrics", "false_answer_rate"), "0.0563"),
@@ -156,3 +184,24 @@ def test_the_one_retried_timeout_is_in_the_question_log() -> None:
         "RuntimeError: Ollama did not reply within 1800s"
     ]
     assert "one question that still timed out was retried on resume" in DOC
+
+
+def test_lead_chunks_are_described_as_configured() -> None:
+    text = DOC.replace("\n", " ")
+
+    assert f"first {DEFAULT_LEAD} chunks" in text
+    assert ", ".join(LEAD_CATEGORIES[:-1]) + " and " + LEAD_CATEGORIES[-1] in text
+
+
+def test_every_other_category_is_identical_to_bm25_on_test() -> None:
+    bm25, lead = (
+        json.loads((REPO / path).read_text(encoding="utf-8"))["per_category"]
+        for path in (TEST_REPORT, LEAD_TEST)
+    )
+
+    others = set(bm25) - set(LEAD_CATEGORIES)
+    assert set(lead) == set(bm25) and len(others) == len(bm25) - len(LEAD_CATEGORIES)
+    assert {category: lead[category] for category in others} == {
+        category: bm25[category] for category in others
+    }
+    assert all(lead[c]["recall@10"] > bm25[c]["recall@10"] for c in LEAD_CATEGORIES)
